@@ -1,0 +1,254 @@
+#pragma semicolon 1
+
+#include <kingssandbox>
+
+#pragma newdecls required
+
+StringMap smEntities;
+
+public Plugin myinfo = 
+{
+	name = "King's Sandbox: Restore", 
+	author = "King Nothing", 
+	description = "Restores the entities spawned incase of crash or reload.", 
+	version = GLOBALVERSION, 
+	url = "https://github.com/rockzehh/kingssandbox"
+};
+
+public void OnPluginStart()
+{
+	RegAdminCmd("sm_reloadsandbox", Command_ReloadSandbox, ADMFLAG_ROOT, "King's Sandbox: Reloads the sandbox plugins except for ks_restore.smx.");
+	RegAdminCmd("sm_restoreentities", Command_RestoreEntities, ADMFLAG_ROOT, "King's Sandbox: Restores the plugin entities after a reload.");
+	
+	smEntities = new StringMap();
+}
+
+public void OnMapEnd()
+{
+	smEntities.Clear();
+}
+
+public void KS_OnCelSpawn(int iCel, int iOwner, CelPropType cptPropType)
+{
+	bool bFrozen, bSolid;
+	CelPropType cptType = KS_GetPropType(iCel);
+	char sClassname[PLATFORM_MAX_PATH], sEntity[16], sFinalString[PLATFORM_MAX_PATH], sInternet[PLATFORM_MAX_PATH];
+	int iColor[4], iOwnerUpdated;
+	
+	GetEntityClassname(iCel, sClassname, sizeof(sClassname));
+	GetEntityRenderColor(iCel, iColor[0], iColor[1], iColor[2], iColor[3]);
+	bFrozen = KS_IsFrozen(iCel);
+	bSolid = KS_IsSolid(iCel);
+	iOwnerUpdated = KS_GetOwner(iCel);
+	
+	Format(sFinalString, sizeof(sFinalString), "%s|%i|%i|%i|%i|%i|%i|%i|%i", sClassname, iColor[0], iColor[1], iColor[2], iColor[3], view_as<int>(bFrozen), view_as<int>(bSolid), iOwnerUpdated, view_as<int>(cptType));
+
+	switch(cptType)
+	{
+		case PROPTYPE_INTERNET:
+		{
+			KS_GetInternetURL(iCel, sInternet, sizeof(sInternet));
+			
+			Format(sFinalString, sizeof(sFinalString), "%s|%s", sFinalString, sInternet);
+		}
+	}
+	
+	IntToString(iCel, sEntity, sizeof(sEntity));
+	
+	smEntities.SetString(sEntity, sFinalString, true);
+}
+
+public void KS_OnEmitterSpawn(int iEmitter, int iOwner, EmitterType etEmitterType)
+{
+	bool bEmitterActive, bFrozen, bSolid;
+	char sClassname[PLATFORM_MAX_PATH], sEntity[16], sFinalString[PLATFORM_MAX_PATH];
+	EmitterType etType = KS_GetEmitterType(iEmitter);
+	int iColor[4], iEmitterAttachment, iOwnerUpdated;
+	
+	GetEntityClassname(iEmitter, sClassname, sizeof(sClassname));
+	GetEntityRenderColor(iEmitter, iColor[0], iColor[1], iColor[2], iColor[3]);
+	bFrozen = KS_IsFrozen(iEmitter);
+	bSolid = KS_IsSolid(iEmitter);
+	iOwnerUpdated = KS_GetOwner(iEmitter);
+	bEmitterActive = KS_IsEmitterActive(iEmitter);
+	iEmitterAttachment = KS_GetEmitterAttachment(iEmitter);
+	
+	Format(sFinalString, sizeof(sFinalString), "%s|%i|%i|%i|%i|%i|%i|%i|%i|%i|%i", sClassname, iColor[0], iColor[1], iColor[2], iColor[3], view_as<int>(bFrozen), view_as<int>(bSolid), iOwnerUpdated, view_as<int>(bEmitterActive), iEmitterAttachment, view_as<int>(etType));
+
+	IntToString(iEmitter, sEntity, sizeof(sEntity));
+	
+	smEntities.SetString(sEntity, sFinalString, true);
+}
+
+public void KS_OnEntityRemove(int iEntity, int iOwner, bool bCel)
+{
+	char sEntity[16], sString[PLATFORM_MAX_PATH];
+	
+	IntToString(iEntity, sEntity, sizeof(sEntity));
+	
+	if(smEntities.GetString(sEntity, sString, sizeof(sString)))
+	{
+		smEntities.Remove(sEntity);
+	}
+}
+
+public void KS_OnPropSpawn(int iProp, int iOwner, CelPropType cptPropType)
+{
+	bool bFrozen, bSolid;
+	CelPropType cptType = KS_GetPropType(iProp);
+	char sClassname[PLATFORM_MAX_PATH], sEntity[16], sFinalString[PLATFORM_MAX_PATH], sPropname[PLATFORM_MAX_PATH];
+	int iColor[4], iOwnerUpdated;
+	
+	GetEntityClassname(iProp, sClassname, sizeof(sClassname));
+	GetEntityRenderColor(iProp, iColor[0], iColor[1], iColor[2], iColor[3]);
+	bFrozen = KS_IsFrozen(iProp);
+	bSolid = KS_IsSolid(iProp);
+	iOwnerUpdated = KS_GetOwner(iProp);
+	KS_GetPropName(iProp, sPropname, sizeof(sPropname));
+	
+	Format(sFinalString, sizeof(sFinalString), "%s|%i|%i|%i|%i|%i|%i|%i|%i|%s", sClassname, iColor[0], iColor[1], iColor[2], iColor[3], view_as<int>(bFrozen), view_as<int>(bSolid), iOwnerUpdated, view_as<int>(cptType), sPropname);
+	
+	IntToString(iProp, sEntity, sizeof(sEntity));
+	
+	smEntities.SetString(sEntity, sFinalString, true);
+}
+
+//Plugin Commands:
+public Action Command_ReloadSandbox(int iClient, int iArgs)
+{
+	char sFilename[PLATFORM_MAX_PATH];
+	
+	Handle hPluginIterator = GetPluginIterator();
+	
+	while (MorePlugins(hPluginIterator))
+	{
+		Handle hCurrentPlugin = ReadPlugin(hPluginIterator);
+		
+		GetPluginFilename(hCurrentPlugin, sFilename, sizeof(sFilename));
+		
+		if(StrContains(sFilename, "ks_emitters") != -1)
+		{
+			ServerCommand("sm plugins reload %s", sFilename);
+		}else if(StrContains(sFilename, "ks_help") != -1)
+		{
+			ServerCommand("sm plugins reload %s", sFilename);
+		}else if(StrContains(sFilename, "kingssandbox") != -1)
+		{
+			ServerCommand("sm plugins reload %s", sFilename);
+		}
+	}
+	
+	return Plugin_Handled;
+}
+
+public Action Command_RestoreEntities(int iClient, int iArgs)
+{
+	CelPropType cptType;
+	char sEntity[16], sString[PLATFORM_MAX_PATH];
+	
+	for (int i = 0; i < GetMaxEntities(); i++)
+	{
+		IntToString(i, sEntity, sizeof(sEntity));
+	
+		if(smEntities.GetString(sEntity, sString, sizeof(sString)))
+		{
+			cptType = KS_GetPropType(i);
+			
+			if(cptType == PROPTYPE_INTERNET)
+			{
+				char sPropString[10][128];
+				
+				ExplodeString(sString, "|", sPropString, 10, sizeof(sPropString));
+				
+				DispatchKeyValue(i, "classname", sPropString[0]);
+				
+				KS_AddToCelCount(StringToInt(sPropString[7]));
+				
+				KS_SetColor(i, StringToInt(sPropString[1]), StringToInt(sPropString[2]), StringToInt(sPropString[3]), StringToInt(sPropString[4]));
+				
+				KS_SetEntity(i, true);
+				
+				KS_SetFrozen(i, view_as<bool>(StringToInt(sPropString[5])));
+				
+				KS_SetInternetURL(i, sPropString[9]);
+				
+				KS_SetOwner(StringToInt(sPropString[7]), i);
+				
+				KS_SetSolid(i, view_as<bool>(StringToInt(sPropString[6])));
+				
+				SDKHook(i, SDKHook_UsePost, Hook_InternetUse);
+			}else if(cptType == PROPTYPE_DOOR)
+			{
+				char sPropString[9][128];
+				
+				ExplodeString(sString, "|", sPropString, 9, sizeof(sPropString));
+				
+				DispatchKeyValue(i, "classname", sPropString[0]);
+				
+				KS_AddToCelCount(StringToInt(sPropString[7]));
+				
+				KS_SetColor(i, StringToInt(sPropString[1]), StringToInt(sPropString[2]), StringToInt(sPropString[3]), StringToInt(sPropString[4]));
+				
+				KS_SetEntity(i, true);
+				
+				KS_SetFrozen(i, view_as<bool>(StringToInt(sPropString[5])));
+				
+				KS_SetOwner(StringToInt(sPropString[7]), i);
+				
+				KS_SetSolid(i, view_as<bool>(StringToInt(sPropString[6])));
+			}else if(cptType == PROPTYPE_EMITTER)
+			{
+				char sPropString[11][128];
+				
+				ExplodeString(sString, "|", sPropString, 11, sizeof(sPropString));
+				
+				DispatchKeyValue(i, "classname", sPropString[0]);
+				
+				KS_AddToCelCount(StringToInt(sPropString[7]));
+				
+				KS_SetColor(i, StringToInt(sPropString[1]), StringToInt(sPropString[2]), StringToInt(sPropString[3]), StringToInt(sPropString[4]));
+				
+				KS_SetEntity(i, true);
+				
+				KS_SetFrozen(i, view_as<bool>(StringToInt(sPropString[5])));
+				
+				KS_SetOwner(StringToInt(sPropString[7]), i);
+				
+				KS_SetSolid(i, view_as<bool>(StringToInt(sPropString[6])));
+				
+				KS_SetEmitterAttachment(i, StringToInt(sPropString[9]));
+			
+				KS_SetColor(KS_GetEmitterAttachment(i), StringToInt(sPropString[1]), StringToInt(sPropString[2]), StringToInt(sPropString[3]), StringToInt(sPropString[4]));
+				KS_SetEntity(KS_GetEmitterAttachment(i), true);
+				KS_SetOwner(StringToInt(sPropString[7]), KS_GetEmitterAttachment(i));
+				
+				SDKHook(i, SDKHook_UsePost, Hook_EmitterUse);
+				
+				KS_SetEmitterActive(i, view_as<bool>(StringToInt(sPropString[8])));
+				
+				KS_SetEmitterType(i, view_as<EmitterType>(StringToInt(sPropString[10])));
+			}else if(cptType == PROPTYPE_CYCLER || cptType == PROPTYPE_DYNAMIC || cptType == PROPTYPE_PHYSICS)
+			{
+				char sPropString[10][128];
+				
+				ExplodeString(sString, "|", sPropString, 10, sizeof(sPropString));
+				
+				DispatchKeyValue(i, "classname", sPropString[0]);
+				
+				KS_AddToPropCount(StringToInt(sPropString[7]));
+				
+				KS_SetColor(i, StringToInt(sPropString[1]), StringToInt(sPropString[2]), StringToInt(sPropString[3]), StringToInt(sPropString[4]));
+				
+				KS_SetEntity(i, true);
+				
+				KS_SetFrozen(i, view_as<bool>(StringToInt(sPropString[5])));
+				
+				KS_SetOwner(StringToInt(sPropString[7]), i);
+				
+				KS_SetSolid(i, view_as<bool>(StringToInt(sPropString[6])));
+				
+				KS_SetPropName(i, sPropString[9]);
+			}
+		}	
+	}
+}
