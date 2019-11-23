@@ -27,7 +27,7 @@ public Plugin myinfo =
 	name = "King's Sandbox: Custom Server ConVars", 
 	author = "King Nothing", 
 	description = "Custom settings for server convars.", 
-	version = GLOBALVERSION, 
+	version = SANDBOX_VERSION, 
 	url = "https://github.com/rockzehh/kingssandbox"
 };
 
@@ -40,10 +40,10 @@ public void OnPluginStart()
 	g_cvHostname = CreateConVar("ks_server_hostname", "King's Sandbox - Build/RP", "The custom hostname for the server.");
 	g_cvTimelimit = CreateConVar("ks_server_timelimit", "60", "The timelimit for the server.");
 	
-	g_cvDownloadURL.AddChangeHook(KS_OnConVarChanged);
-	g_cvGravity.AddChangeHook(KS_OnConVarChanged);
-	g_cvHostname.AddChangeHook(KS_OnConVarChanged);
-	g_cvTimelimit.AddChangeHook(KS_OnConVarChanged);
+	g_cvDownloadURL.AddChangeHook(KSConfig_OnConVarChanged);
+	g_cvGravity.AddChangeHook(KSConfig_OnConVarChanged);
+	g_cvHostname.AddChangeHook(KSConfig_OnConVarChanged);
+	g_cvTimelimit.AddChangeHook(KSConfig_OnConVarChanged);
 	
 	g_cvDownloadURL.GetString(g_sDownloadURL, sizeof(g_sDownloadURL));
 	g_iGravity = g_cvGravity.IntValue;
@@ -60,7 +60,7 @@ public void OnMapStart()
 	KS_ReloadServerConVars();
 }
 
-public void KS_OnConVarChanged(ConVar cvConVar, const char[] sOldValue, const char[] sNewValue)
+public void KSConfig_OnConVarChanged(ConVar cvConVar, const char[] sOldValue, const char[] sNewValue)
 {
 	if (cvConVar == g_cvDownloadURL)
 	{
@@ -97,110 +97,110 @@ public int Native_ReloadServerConVars(Handle hPlugin, int iNumParams)
 	ConVar cvConVar;
 	
 	cvConVar = FindConVar("deathmatch");
-	if(cvConVar == null)
+	if (cvConVar == null)
 	{
 		PrintToServer("King's Sandbox: ConVar 'deathmatch' not found.");
-	}else{
+	} else {
 		cvConVar.SetInt(1);
 		
 		PrintToServer("King's Sandbox: ConVar 'deathmatch' set to '1'.");
 	}
 	
 	cvConVar = FindConVar("hostname");
-	if(cvConVar == null)
+	if (cvConVar == null)
 	{
 		PrintToServer("King's Sandbox: ConVar 'hostname' not found.");
-	}else{
+	} else {
 		cvConVar.SetString(g_sHostname);
 		
 		PrintToServer("King's Sandbox: ConVar 'hostname' set to '%s'.", g_sHostname);
 	}
 	
 	cvConVar = FindConVar("mp_fraglimit");
-	if(cvConVar == null)
+	if (cvConVar == null)
 	{
 		PrintToServer("King's Sandbox: ConVar 'mp_fraglimit' not found.");
-	}else{
+	} else {
 		cvConVar.SetInt(0);
 		
 		PrintToServer("King's Sandbox: ConVar 'mp_fraglimit' set to '0'.");
 	}
 	
 	cvConVar = FindConVar("mp_friendlyfire");
-	if(cvConVar == null)
+	if (cvConVar == null)
 	{
 		PrintToServer("King's Sandbox: ConVar 'mp_friendlyfire' not found.");
-	}else{
+	} else {
 		cvConVar.SetInt(1);
 		
 		PrintToServer("King's Sandbox: ConVar 'mp_friendlyfire' set to '1'.");
 	}
 	
 	cvConVar = FindConVar("mp_teamplay");
-	if(cvConVar == null)
+	if (cvConVar == null)
 	{
 		PrintToServer("King's Sandbox: ConVar 'mp_teamplay' not found.");
-	}else{
+	} else {
 		cvConVar.SetInt(1);
 		
 		PrintToServer("King's Sandbox: ConVar 'mp_teamplay' set to '1'.");
 	}
 	
 	cvConVar = FindConVar("mp_timelimit");
-	if(cvConVar == null)
+	if (cvConVar == null)
 	{
 		PrintToServer("King's Sandbox: ConVar 'mp_timelimit' not found.");
-	}else{
+	} else {
 		cvConVar.SetInt(g_iTimelimit);
 		
 		PrintToServer("King's Sandbox: ConVar 'mp_timelimit' set to '%i'.", g_iTimelimit);
 	}
 	
 	cvConVar = FindConVar("mp_weaponstay");
-	if(cvConVar == null)
+	if (cvConVar == null)
 	{
 		PrintToServer("King's Sandbox: ConVar 'mp_weaponstay' not found.");
-	}else{
+	} else {
 		cvConVar.SetInt(1);
 		
 		PrintToServer("King's Sandbox: ConVar 'mp_weaponstay' set to '1'.");
 	}
 	
 	cvConVar = FindConVar("sv_allowdownload");
-	if(cvConVar == null)
+	if (cvConVar == null)
 	{
 		PrintToServer("King's Sandbox: ConVar 'sv_allowdownload' not found.");
-	}else{
+	} else {
 		cvConVar.SetInt(1);
 		
 		PrintToServer("King's Sandbox: ConVar 'sv_allowdownload' set to '1'.");
 	}
 	
 	cvConVar = FindConVar("sv_allowupload");
-	if(cvConVar == null)
+	if (cvConVar == null)
 	{
 		PrintToServer("King's Sandbox: ConVar 'sv_allowupload' not found.");
-	}else{
+	} else {
 		cvConVar.SetInt(1);
 		
 		PrintToServer("King's Sandbox: ConVar 'sv_allowupload' set to '1'.");
 	}
 	
 	cvConVar = FindConVar("sv_downloadurl");
-	if(cvConVar == null)
+	if (cvConVar == null)
 	{
 		PrintToServer("King's Sandbox: ConVar 'sv_downloadurl' not found.");
-	}else{
+	} else {
 		cvConVar.SetString(g_sDownloadURL);
 		
 		PrintToServer("King's Sandbox: ConVar 'sv_downloadurl' set to '%s'.", g_sDownloadURL);
 	}
 	
 	cvConVar = FindConVar("sv_gravity");
-	if(cvConVar == null)
+	if (cvConVar == null)
 	{
 		PrintToServer("King's Sandbox: ConVar 'sv_gravity' not found.");
-	}else{
+	} else {
 		cvConVar.SetInt(g_iGravity);
 		
 		PrintToServer("King's Sandbox: ConVar 'sv_gravity' set to '%i'.", g_iGravity);

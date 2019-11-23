@@ -11,7 +11,7 @@ public Plugin myinfo =
 	name = "King's Sandbox: Restore", 
 	author = "King Nothing", 
 	description = "Restores the entities spawned incase of crash or reload.", 
-	version = GLOBALVERSION, 
+	version = SANDBOX_VERSION, 
 	url = "https://github.com/rockzehh/kingssandbox"
 };
 
@@ -28,10 +28,10 @@ public void OnMapEnd()
 	smEntities.Clear();
 }
 
-public void KS_OnCelSpawn(int iCel, int iOwner, CelPropType cptPropType)
+public void KS_OnCelSpawn(int iCel, int iOwner, EntityType etEntityType)
 {
 	bool bFrozen, bSolid;
-	CelPropType cptType = KS_GetPropType(iCel);
+	EntityType etType = KS_GetEntityType(iCel);
 	char sClassname[PLATFORM_MAX_PATH], sEntity[16], sFinalString[PLATFORM_MAX_PATH], sInternet[PLATFORM_MAX_PATH];
 	int iColor[4], iOwnerUpdated;
 	
@@ -41,11 +41,11 @@ public void KS_OnCelSpawn(int iCel, int iOwner, CelPropType cptPropType)
 	bSolid = KS_IsSolid(iCel);
 	iOwnerUpdated = KS_GetOwner(iCel);
 	
-	Format(sFinalString, sizeof(sFinalString), "%s|%i|%i|%i|%i|%i|%i|%i|%i", sClassname, iColor[0], iColor[1], iColor[2], iColor[3], view_as<int>(bFrozen), view_as<int>(bSolid), iOwnerUpdated, view_as<int>(cptType));
-
-	switch(cptType)
+	Format(sFinalString, sizeof(sFinalString), "%s|%i|%i|%i|%i|%i|%i|%i|%i", sClassname, iColor[0], iColor[1], iColor[2], iColor[3], view_as<int>(bFrozen), view_as<int>(bSolid), iOwnerUpdated, view_as<int>(etType));
+	
+	switch (etType)
 	{
-		case PROPTYPE_INTERNET:
+		case ENTTYPE_INTERNET:
 		{
 			KS_GetInternetURL(iCel, sInternet, sizeof(sInternet));
 			
@@ -74,7 +74,7 @@ public void KS_OnEmitterSpawn(int iEmitter, int iOwner, EmitterType etEmitterTyp
 	iEmitterAttachment = KS_GetEmitterAttachment(iEmitter);
 	
 	Format(sFinalString, sizeof(sFinalString), "%s|%i|%i|%i|%i|%i|%i|%i|%i|%i|%i", sClassname, iColor[0], iColor[1], iColor[2], iColor[3], view_as<int>(bFrozen), view_as<int>(bSolid), iOwnerUpdated, view_as<int>(bEmitterActive), iEmitterAttachment, view_as<int>(etType));
-
+	
 	IntToString(iEmitter, sEntity, sizeof(sEntity));
 	
 	smEntities.SetString(sEntity, sFinalString, true);
@@ -86,16 +86,16 @@ public void KS_OnEntityRemove(int iEntity, int iOwner, bool bCel)
 	
 	IntToString(iEntity, sEntity, sizeof(sEntity));
 	
-	if(smEntities.GetString(sEntity, sString, sizeof(sString)))
+	if (smEntities.GetString(sEntity, sString, sizeof(sString)))
 	{
 		smEntities.Remove(sEntity);
 	}
 }
 
-public void KS_OnPropSpawn(int iProp, int iOwner, CelPropType cptPropType)
+public void KS_OnPropSpawn(int iProp, int iOwner, EntityType etEntityType)
 {
 	bool bFrozen, bSolid;
-	CelPropType cptType = KS_GetPropType(iProp);
+	EntityType etType = KS_GetEntityType(iProp);
 	char sClassname[PLATFORM_MAX_PATH], sEntity[16], sFinalString[PLATFORM_MAX_PATH], sPropname[PLATFORM_MAX_PATH];
 	int iColor[4], iOwnerUpdated;
 	
@@ -106,7 +106,7 @@ public void KS_OnPropSpawn(int iProp, int iOwner, CelPropType cptPropType)
 	iOwnerUpdated = KS_GetOwner(iProp);
 	KS_GetPropName(iProp, sPropname, sizeof(sPropname));
 	
-	Format(sFinalString, sizeof(sFinalString), "%s|%i|%i|%i|%i|%i|%i|%i|%i|%s", sClassname, iColor[0], iColor[1], iColor[2], iColor[3], view_as<int>(bFrozen), view_as<int>(bSolid), iOwnerUpdated, view_as<int>(cptType), sPropname);
+	Format(sFinalString, sizeof(sFinalString), "%s|%i|%i|%i|%i|%i|%i|%i|%i|%s", sClassname, iColor[0], iColor[1], iColor[2], iColor[3], view_as<int>(bFrozen), view_as<int>(bSolid), iOwnerUpdated, view_as<int>(etType), sPropname);
 	
 	IntToString(iProp, sEntity, sizeof(sEntity));
 	
@@ -126,13 +126,16 @@ public Action Command_ReloadSandbox(int iClient, int iArgs)
 		
 		GetPluginFilename(hCurrentPlugin, sFilename, sizeof(sFilename));
 		
-		if(StrContains(sFilename, "ks_emitters") != -1)
+		if (StrContains(sFilename, "kingssandbox") != -1)
 		{
 			ServerCommand("sm plugins reload %s", sFilename);
-		}else if(StrContains(sFilename, "ks_help") != -1)
+		} else if (StrContains(sFilename, "ks_emitters") != -1)
 		{
 			ServerCommand("sm plugins reload %s", sFilename);
-		}else if(StrContains(sFilename, "kingssandbox") != -1)
+		} else if (StrContains(sFilename, "ks_help") != -1)
+		{
+			ServerCommand("sm plugins reload %s", sFilename);
+		} else if (StrContains(sFilename, "ks_hud") != -1)
 		{
 			ServerCommand("sm plugins reload %s", sFilename);
 		}
@@ -143,18 +146,18 @@ public Action Command_ReloadSandbox(int iClient, int iArgs)
 
 public Action Command_RestoreEntities(int iClient, int iArgs)
 {
-	CelPropType cptType;
+	EntityType etType;
 	char sEntity[16], sString[PLATFORM_MAX_PATH];
 	
 	for (int i = 0; i < GetMaxEntities(); i++)
 	{
 		IntToString(i, sEntity, sizeof(sEntity));
-	
-		if(smEntities.GetString(sEntity, sString, sizeof(sString)))
+		
+		if (smEntities.GetString(sEntity, sString, sizeof(sString)))
 		{
-			cptType = KS_GetPropType(i);
+			etType = KS_GetEntityType(i);
 			
-			if(cptType == PROPTYPE_INTERNET)
+			if (etType == ENTTYPE_INTERNET)
 			{
 				char sPropString[10][128];
 				
@@ -177,7 +180,7 @@ public Action Command_RestoreEntities(int iClient, int iArgs)
 				KS_SetSolid(i, view_as<bool>(StringToInt(sPropString[6])));
 				
 				SDKHook(i, SDKHook_UsePost, Hook_InternetUse);
-			}else if(cptType == PROPTYPE_DOOR)
+			} else if (etType == ENTTYPE_DOOR)
 			{
 				char sPropString[9][128];
 				
@@ -196,7 +199,7 @@ public Action Command_RestoreEntities(int iClient, int iArgs)
 				KS_SetOwner(StringToInt(sPropString[7]), i);
 				
 				KS_SetSolid(i, view_as<bool>(StringToInt(sPropString[6])));
-			}else if(cptType == PROPTYPE_EMITTER)
+			} else if (etType == ENTTYPE_EMITTER)
 			{
 				char sPropString[11][128];
 				
@@ -217,7 +220,7 @@ public Action Command_RestoreEntities(int iClient, int iArgs)
 				KS_SetSolid(i, view_as<bool>(StringToInt(sPropString[6])));
 				
 				KS_SetEmitterAttachment(i, StringToInt(sPropString[9]));
-			
+				
 				KS_SetColor(KS_GetEmitterAttachment(i), StringToInt(sPropString[1]), StringToInt(sPropString[2]), StringToInt(sPropString[3]), StringToInt(sPropString[4]));
 				KS_SetEntity(KS_GetEmitterAttachment(i), true);
 				KS_SetOwner(StringToInt(sPropString[7]), KS_GetEmitterAttachment(i));
@@ -227,7 +230,7 @@ public Action Command_RestoreEntities(int iClient, int iArgs)
 				KS_SetEmitterActive(i, view_as<bool>(StringToInt(sPropString[8])));
 				
 				KS_SetEmitterType(i, view_as<EmitterType>(StringToInt(sPropString[10])));
-			}else if(cptType == PROPTYPE_CYCLER || cptType == PROPTYPE_DYNAMIC || cptType == PROPTYPE_PHYSICS)
+			} else if (etType == ENTTYPE_CYCLER || etType == ENTTYPE_DYNAMIC || etType == ENTTYPE_PHYSICS)
 			{
 				char sPropString[10][128];
 				
@@ -249,6 +252,6 @@ public Action Command_RestoreEntities(int iClient, int iArgs)
 				
 				KS_SetPropName(i, sPropString[9]);
 			}
-		}	
+		}
 	}
 }

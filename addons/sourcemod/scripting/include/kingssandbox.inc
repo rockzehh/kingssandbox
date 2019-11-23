@@ -6,18 +6,24 @@
 #include <morecolors>
 #include <sdkhooks>
 #include <sdktools>
-//#include <smlib>
 #include <sourcemod>
 
-enum CelPropType
+enum EntityCatagory
 {
-	PROPTYPE_CYCLER = 0, /**< Cycler prop type. cycler */
-	PROPTYPE_DOOR = 1, /**< Door prop type. prop_door_rotating */
-	PROPTYPE_DYNAMIC = 2, /**< Dynamic prop type. prop_dynamic, prop_dynamic_override */
-	PROPTYPE_EMITTER = 3, /**< Emitter prop type. emitter_* */
-	PROPTYPE_INTERNET = 4, /**< Internet prop type. cel_internet */
-	PROPTYPE_PHYSICS = 5, /**< Physics prop type. prop_physics, prop_physics_override */
-	PROPTYPE_UNKNOWN = 6, /**< Unknown prop type. */
+	ENTCATAGORY_CEL = 0, /**< Cel entity. cel_internet, emitter_*, prop_door_rotating */
+	ENTCATAGORY_PROP = 1, /**< Prop entity. cycler, prop_dynamic, prop_dynamic_override, prop_physics, prop_physics_override */
+	ENTCATAGORY_UNKNOWN = 2, /**< Unknown entity. */
+};
+
+enum EntityType
+{
+	ENTTYPE_CYCLER = 0, /**< Cycler prop type. cycler */
+	ENTTYPE_DOOR = 1, /**< Door prop type. prop_door_rotating */
+	ENTTYPE_DYNAMIC = 2, /**< Dynamic prop type. prop_dynamic, prop_dynamic_override */
+	ENTTYPE_EMITTER = 3, /**< Emitter prop type. emitter_* */
+	ENTTYPE_INTERNET = 4, /**< Internet prop type. cel_internet */
+	ENTTYPE_PHYSICS = 5, /**< Physics prop type. prop_physics, prop_physics_override */
+	ENTTYPE_UNKNOWN = 6, /**< Unknown prop type. */
 };
 
 enum EmitterType
@@ -31,7 +37,7 @@ enum EmitterType
 	EMITTER_UNKNOWN = 6, /**< Unknown emitter type. */
 };
 
-#define GLOBALVERSION "1.0.0.0" /**< Global version. */
+#define SANDBOX_VERSION "1.1.0.0" /**< Global version. */
 #define MAXENTS 2048 /**< Max number of entities Source can handle. */
 
 //========== kingssandbox.smx ==========
@@ -75,6 +81,17 @@ native bool KS_CheckCelCount(int iClient);
  */
 native bool KS_CheckColorDB(const char[] sColor, char[] sColorString, int iMaxLength);
 
+native bool KS_CheckEntityCatagory(int iEntity, EntityCatagory ecEntityCatagory);
+
+/**
+ * Checks if the prop type matches the search string.
+ *
+ * @param iEntity		Prop index.
+ * @param sTypeCheck	Prop type to check.
+ * @return				True if the string matches the prop type, false if it doesn't.
+ */
+native bool KS_CheckEntityType(int iEntity, const char[] sTypeCheck);
+
 /**
  * Checks if the client is the owner of the entity.
  *
@@ -91,15 +108,6 @@ native bool KS_CheckOwner(int iClient, int iEntity);
  * @return				True if the prop limit has been reached, false if it hasn't.
  */
 native bool KS_CheckPropCount(int iClient);
-
-/**
- * Checks if the prop type matches the search string.
- *
- * @param iEntity		Prop index.
- * @param sTypeCheck	Prop type to check.
- * @return				True if the string matches the prop type, false if it doesn't.
- */
-native bool KS_CheckPropType(int iEntity, const char[] sTypeCheck);
 
 /**
  * Checks if the prop exists in the spawn database.
@@ -171,10 +179,39 @@ stock float KS_GetEntityAngles(int iEntity, float fAngles[3])
 	GetEntPropVector(iEntity, Prop_Data, "m_angAbsRotation", fAngles);
 }
 
+native EntityCatagory KS_GetEntityCatagory(int iEntity);
+
+native char KS_GetEntityCatagoryName(int iEntity, char[] sEntityCatagory, int iMaxLength);
+
 stock float KS_GetEntityOrigin(int iEntity, float fOrigin[3])
 {
 	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", fOrigin);
 }
+
+/**
+ * Gets the prop type.
+ *
+ * @param iEntity		Entity index.
+ * @return				Returns the prop type.
+ */
+native EntityType KS_GetEntityType(int iEntity);
+
+/**
+ * Gets the prop type from name.
+ *
+ * @param sEntityType		String to check.
+ * @return				Returns the prop type, ENTTYPE_UNKNOWN if the name is invalid.
+ */
+native EntityType KS_GetEntityTypeFromName(const char[] sEntityType);
+
+/**
+ * Gets the prop type name from prop type.
+ *
+ * @param etEntityType	Prop type.
+ * @param sEntityType		Buffer to store the prop type.
+ * @param iMaxLength	Maximum length of the buffer.
+ */
+native char KS_GetEntityTypeName(EntityType etEntityType, char[] sEntityType, int iMaxLength);
 
 /**
  * Gets the internet cel url.
@@ -226,31 +263,6 @@ native int KS_GetPropLimit();
 native char KS_GetPropName(int iEntity, const char[] sPropName, int iMaxLength);
 
 /**
- * Gets the prop type.
- *
- * @param iEntity		Entity index.
- * @return				Returns the prop type.
- */
-native CelPropType KS_GetPropType(int iEntity);
-
-/**
- * Gets the prop type from name.
- *
- * @param sPropType		String to check.
- * @return				Returns the prop type, PROPTYPE_UNKNOWN if the name is invalid.
- */
-native CelPropType KS_GetPropTypeFromName(const char[] sPropType);
-
-/**
- * Gets the prop type name from prop type.
- *
- * @param cptPropType	Prop type.
- * @param sPropType		Buffer to store the prop type.
- * @param iMaxLength	Maximum length of the buffer.
- */
-native char KS_GetPropTypeName(CelPropType cptPropType, char[] sPropType, int iMaxLength);
-
-/**
  * Checks if the entity is a plugin entity.
  *
  * @param iEntity		Entity index.
@@ -266,6 +278,8 @@ native bool KS_IsEntity(int iEntity);
  */
 native bool KS_IsFrozen(int iEntity);
 
+native bool KS_IsPlayer(int iClient);
+
 /**
  * Checks if the entity is solid.
  *
@@ -278,11 +292,11 @@ native void KS_NotLooking(int iClient);
 
 native void KS_NotYours(int iClient, int iEntity);
 
-forward void KS_OnCelSpawn(int iCel, int iOwner, CelPropType cptPropType);
+forward void KS_OnCelSpawn(int iCel, int iOwner, EntityType etEntityType);
 
 forward void KS_OnEntityRemove(int iEntity, int iOwner, bool bCel);
 
-forward void KS_OnPropSpawn(int iProp, int iOwner, CelPropType cptPropType);
+forward void KS_OnPropSpawn(int iProp, int iOwner, EntityType etEntityType);
 
 native void KS_PlayChatMessageSound(int iClient);
 
@@ -312,6 +326,8 @@ native void KS_SetNoKill(int iClient, bool bNoKill);
 
 native void KS_SetOwner(int iClient, int iEntity);
 
+native void KS_SetPlayer(int iClient, bool bPlayer);
+
 native void KS_SetPropCount(int iClient, int iCount);
 
 native void KS_SetPropLimit(int iLimit);
@@ -324,7 +340,7 @@ native int KS_SpawnDoor(int iClient, const char[] sSkin, float fAngles[3], float
 
 native int KS_SpawnInternet(int iClient, const char[] sURL, float fAngles[3], float fOrigin[3], int iR, int iG, int iB, int iA);
 
-native int KS_SpawnProp(int iClient, const char[] sAlias, const char[] sPropType, const char[] sModel, float fAngles[3], float fOrigin[3], int iR, int iG, int iB, int iA);
+native int KS_SpawnProp(int iClient, const char[] sAlias, const char[] sEntityType, const char[] sModel, float fAngles[3], float fOrigin[3], int iR, int iG, int iB, int iA);
 
 native void KS_SubFromCelCount(int iClient);
 
@@ -418,6 +434,15 @@ native bool KS_ExportPropList(bool bHTML);
 
 native void KS_OpenMOTDOnClient(int iClient, bool bShow, const char[] sTitle, const char[] sDestination, int iType = MOTDPANEL_TYPE_URL);
 
+//========== ks_hud.smx ==========
+native void KS_ChooseHudColor(int iClient);
+
+native int KS_GetHudColor(int iClient, int iColor[4]);
+
+native void KS_SendHudMessage(int iClient, int iChannel, float fX, float fY, int iR, int iG, int iB, int iA, int iEffect, float fFadeIn, float fFadeOut, float fHoldTime, float fFxTime, char[] sMessage);
+
+native void KS_SetHudColor(int iClient, int iR, int iG, int iB, int iA);
+
 //========== ks_serverconvars.smx ==========
 native void KS_ReloadServerConVars();
 
@@ -464,4 +489,19 @@ public void Hook_InternetUse(int iEntity, int iActivator, int iCaller, UseType u
 	KS_GetInternetURL(iEntity, sURL, sizeof(sURL));
 	
 	KS_OpenMOTDOnClient(iActivator, true, "King's Web Viewer", sURL, MOTDPANEL_TYPE_URL);
+}
+
+//Timers:
+public Action Timer_DelayRemove(Handle hTimer, any iRef)
+{
+	int iEntity = EntRefToEntIndex(iRef);
+	
+	AcceptEntityInput(iEntity, "kill");
+}
+
+public Action Timer_DisRemove(Handle hTimer, any iRef)
+{
+	int iEntity = EntRefToEntIndex(iRef);
+	
+	KS_DissolveEntity(iEntity);
 }

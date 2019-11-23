@@ -3,6 +3,7 @@
 #pragma semicolon 1
 
 #include <kingssandbox>
+#include <geoip>
 
 #pragma newdecls required
 
@@ -10,6 +11,7 @@ bool g_bEntity[MAXENTS + 1];
 bool g_bFrozen[MAXENTS + 1];
 bool g_bLate;
 bool g_bNoKill[MAXPLAYERS + 1];
+bool g_bPlayer[MAXPLAYERS + 1];
 bool g_bSolid[MAXENTS + 1];
 
 char g_sAuthID[MAXPLAYERS + 1][32];
@@ -56,9 +58,10 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErr
 	CreateNative("KS_ChangeBeam", Native_ChangeBeam);
 	CreateNative("KS_CheckCelCount", Native_CheckCelCount);
 	CreateNative("KS_CheckColorDB", Native_CheckColorDB);
+	CreateNative("KS_CheckEntityCatagory", Native_CheckEntityCatagory);
+	CreateNative("KS_CheckEntityType", Native_CheckEntityType);
 	CreateNative("KS_CheckOwner", Native_CheckOwner);
 	CreateNative("KS_CheckPropCount", Native_CheckPropCount);
-	CreateNative("KS_CheckPropType", Native_CheckPropType);
 	CreateNative("KS_CheckSpawnDB", Native_CheckSpawnDB);
 	CreateNative("KS_DissolveEntity", Native_DissolveEntity);
 	CreateNative("KS_GetAuthID", Native_GetAuthID);
@@ -67,17 +70,20 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErr
 	CreateNative("KS_GetCelLimit", Native_GetCelLimit);
 	CreateNative("KS_GetColor", Native_GetColor);
 	CreateNative("KS_GetCrosshairHitOrigin", Native_GetCrosshairHitOrigin);
+	CreateNative("KS_GetEntityCatagory", Native_GetEntityCatagory);
+	CreateNative("KS_GetEntityCatagoryName", Native_GetEntityCatagoryName);
+	CreateNative("KS_GetEntityType", Native_GetEntityType);
+	CreateNative("KS_GetEntityTypeFromName", Native_GetEntityTypeFromName);
+	CreateNative("KS_GetEntityTypeName", Native_GetEntityTypeName);
 	CreateNative("KS_GetInternetURL", Native_GetInternetURL);
 	CreateNative("KS_GetNoKill", Native_GetNoKill);
 	CreateNative("KS_GetOwner", Native_GetOwner);
 	CreateNative("KS_GetPropCount", Native_GetPropCount);
 	CreateNative("KS_GetPropLimit", Native_GetPropLimit);
 	CreateNative("KS_GetPropName", Native_GetPropName);
-	CreateNative("KS_GetPropType", Native_GetPropType);
-	CreateNative("KS_GetPropTypeFromName", Native_GetPropTypeFromName);
-	CreateNative("KS_GetPropTypeName", Native_GetPropTypeName);
 	CreateNative("KS_IsEntity", Native_IsEntity);
 	CreateNative("KS_IsFrozen", Native_IsFrozen);
+	CreateNative("KS_IsPlayer", Native_IsPlayer);
 	CreateNative("KS_IsSolid", Native_IsSolid);
 	CreateNative("KS_NotLooking", Native_NotLooking);
 	CreateNative("KS_NotYours", Native_NotYours);
@@ -95,6 +101,7 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErr
 	CreateNative("KS_SetInternetURL", Native_SetInternetURL);
 	CreateNative("KS_SetNoKill", Native_SetNoKill);
 	CreateNative("KS_SetOwner", Native_SetOwner);
+	CreateNative("KS_SetPlayer", Native_SetPlayer);
 	CreateNative("KS_SetPropCount", Native_SetPropCount);
 	CreateNative("KS_SetPropLimit", Native_SetPropLimit);
 	CreateNative("KS_SetPropName", Native_SetPropName);
@@ -115,7 +122,7 @@ public Plugin myinfo =
 	name = "King's Sandbox", 
 	author = "King Nothing", 
 	description = "A fully customized building experience with roleplay, and extra features to enhance the standard gameplay.", 
-	version = GLOBALVERSION, 
+	version = SANDBOX_VERSION, 
 	url = "https://github.com/rockzehh/kingssandbox"
 };
 
@@ -136,23 +143,26 @@ public void OnPluginStart()
 		}
 	}
 	
+	AddCommandListener(Handle_Chat, "say");
+	AddCommandListener(Handle_Chat, "say_team");
+	
 	BuildPath(Path_SM, sPath, sizeof(sPath), "data/kingssandbox");
-	if(!DirExists(sPath))
+	if (!DirExists(sPath))
 	{
 		CreateDirectory(sPath, 511);
 	}
 	BuildPath(Path_SM, sPath, sizeof(sPath), "data/kingssandbox/users");
-	if(!DirExists(sPath))
+	if (!DirExists(sPath))
 	{
 		CreateDirectory(sPath, 511);
 	}
 	BuildPath(Path_SM, g_sColorDB, sizeof(g_sColorDB), "data/kingssandbox/colors.txt");
-	if(!FileExists(g_sColorDB))
+	if (!FileExists(g_sColorDB))
 	{
 		ThrowError("King's Sandbox: Cannot find '%s'. Plugin cannot run!", g_sColorDB);
 	}
 	BuildPath(Path_SM, g_sSpawnDB, sizeof(g_sSpawnDB), "data/kingssandbox/spawns.txt");
-	if(!FileExists(g_sSpawnDB))
+	if (!FileExists(g_sSpawnDB))
 	{
 		ThrowError("King's Sandbox: Cannot find '%s'. Plugin cannot run!", g_sSpawnDB);
 	}
@@ -160,6 +170,11 @@ public void OnPluginStart()
 	g_hOnCelSpawn = CreateGlobalForward("KS_OnCelSpawn", ET_Hook, Param_Cell, Param_Cell, Param_Cell);
 	g_hOnEntityRemove = CreateGlobalForward("KS_OnEntityRemove", ET_Hook, Param_Cell, Param_Cell, Param_Cell);
 	g_hOnPropSpawn = CreateGlobalForward("KS_OnPropSpawn", ET_Hook, Param_Cell, Param_Cell, Param_Cell);
+	
+	HookEvent("player_connect", Event_Connect, EventHookMode_Pre);
+	HookEvent("player_death", Event_Death, EventHookMode_Post);
+	HookEvent("player_disconnect", Event_Disconnect, EventHookMode_Pre);
+	HookEvent("player_spawn", Event_Spawn, EventHookMode_Post);
 	
 	RegAdminCmd("sm_setowner", Command_SetOwner, ADMFLAG_SLAY, "King's Sandbox: Sets the owner of the prop you are looking at.");
 	RegConsoleCmd("sm_alpha", Command_Alpha, "King's Sandbox: Changes the transparency on the prop you are looking at.");
@@ -192,9 +207,9 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_unfreezeit", Command_UnfreezeIt, "King's Sandbox: Unfreezes the prop you are looking at.");
 	
 	CreateConVar("kingssandbox", "1", "Notifies the server that the plugin is running.");
-	CreateConVar("ks_version", GLOBALVERSION, "The version of the plugin the server is running.");
-	g_cvCelLimit = CreateConVar("cm_max_player_cels", "20", "Maxiumum number of cel entities a client is allowed.");
-	g_cvPropLimit = CreateConVar("cm_max_player_props", "130", "Maxiumum number of props a player is allowed to spawn.");
+	CreateConVar("ks_version", SANDBOX_VERSION, "The version of the plugin the server is running.");
+	g_cvCelLimit = CreateConVar("ks_max_player_cels", "20", "Maxiumum number of cel entities a client is allowed.");
+	g_cvPropLimit = CreateConVar("ks_max_player_props", "130", "Maxiumum number of props a player is allowed to spawn.");
 	
 	g_cvCelLimit.AddChangeHook(KS_OnConVarChanged);
 	g_cvPropLimit.AddChangeHook(KS_OnConVarChanged);
@@ -207,23 +222,40 @@ public void OnPluginStart()
 
 public void OnClientAuthorized(int iClient, const char[] sAuthID)
 {
+	char sCountry[45], sIP[64];
+	
+	GetClientIP(iClient, sIP, sizeof(sIP), true);
+	GeoipCountry(sIP, sCountry, sizeof(sCountry));
+	
 	KS_SetAuthID(iClient);
+	
+	CPrintToChatAll("{green}[+]{default} Player {green}%N{default} connecting from {green}%s{default}", iClient, sCountry);
+	for (int i = 1; i < MaxClients; i++)
+	{
+		if (IsClientInGame(i))
+		{
+			ClientCommand(i, "play npc/metropolice/vo/on1.wav");
+		}
+	}
 }
 
 public void OnClientPutInServer(int iClient)
 {
 	char sAuthID[64], sPath[PLATFORM_MAX_PATH];
 	
+	KS_ChooseHudColor(iClient);
+	
 	KS_GetAuthID(iClient, sAuthID, sizeof(sAuthID));
 	
 	BuildPath(Path_SM, sPath, sizeof(sPath), "data/kingssandbox/users/%s", sAuthID);
-	if(!DirExists(sPath))
+	if (!DirExists(sPath))
 	{
 		CreateDirectory(sPath, 511);
 	}
 	
 	KS_SetCelCount(iClient, 0);
 	KS_SetNoKill(iClient, false);
+	KS_SetPlayer(iClient, true);
 	KS_SetPropCount(iClient, 0);
 }
 
@@ -231,6 +263,7 @@ public void OnClientDisconnect(int iClient)
 {
 	KS_SetCelCount(iClient, 0);
 	KS_SetNoKill(iClient, false);
+	KS_SetPlayer(iClient, false);
 	KS_SetPropCount(iClient, 0);
 	
 	for (int i = 0; i < GetMaxEntities(); i++)
@@ -238,6 +271,15 @@ public void OnClientDisconnect(int iClient)
 		if (KS_CheckOwner(iClient, i) && KS_IsEntity(i) && IsValidEdict(i))
 		{
 			AcceptEntityInput(i, "kill");
+		}
+	}
+	
+	CPrintToChatAll("{red}[-]{default} Player {green}%N{default} disconnected", iClient);
+	for (int i = 1; i < MaxClients; i++)
+	{
+		if (IsClientInGame(i))
+		{
+			ClientCommand(i, "play npc/metropolice/vo/off1.wav");
 		}
 	}
 }
@@ -260,7 +302,7 @@ public void OnMapStart()
 	
 	DispatchSpawn(g_iEntityDissolve);
 	
-	DispatchKeyValue(g_iEntityDissolve, "classname", "cel_entity_dissolver");
+	DispatchKeyValue(g_iEntityDissolve, "classname", "sandbox_entity_dissolver");
 }
 
 public void OnMapEnd()
@@ -288,10 +330,10 @@ public void KS_OnConVarChanged(ConVar cvConVar, const char[] sOldValue, const ch
 	}
 }
 
-//Plugin Commands:
+//Commands:
 public Action Command_Alpha(int iClient, int iArgs)
 {
-	char sAlpha[16], sPropType[32];
+	char sAlpha[16], sEntityType[32];
 	
 	if (iArgs < 1)
 	{
@@ -313,15 +355,15 @@ public Action Command_Alpha(int iClient, int iArgs)
 	{
 		int iAlpha = StringToInt(sAlpha) < 50 ? 255 : StringToInt(sAlpha);
 		
-		KS_GetPropTypeName(KS_GetPropType(iProp), sPropType, sizeof(sPropType));
+		KS_GetEntityTypeName(KS_GetEntityType(iProp), sEntityType, sizeof(sEntityType));
 		
 		KS_SetColor(iProp, -1, -1, -1, iAlpha);
-		if(KS_CheckPropType(iProp, "emitter"))
+		if (KS_CheckEntityType(iProp, "emitter"))
 			KS_SetColor(KS_GetEmitterAttachment(iProp), -1, -1, -1, iAlpha);
 		
 		KS_ChangeBeam(iClient, iProp);
 		
-		KS_ReplyToCommand(iClient, "Set transparency on %s to {green}%i{default}.", sPropType, iAlpha);
+		KS_ReplyToCommand(iClient, "Set transparency on %s to {green}%i{default}.", sEntityType, iAlpha);
 	} else {
 		KS_NotYours(iClient, iProp);
 		return Plugin_Handled;
@@ -354,11 +396,11 @@ public Action Command_Axis(int iClient, int iArgs)
 
 public Action Command_Color(int iClient, int iArgs)
 {
-	char sColor[64], sColorBuffer[3][6], sColorString[16], sPropType[32];
+	char sColor[64], sColorBuffer[3][6], sColorString[16], sEntityType[32];
 	
 	if (iArgs < 1)
 	{
-		KS_ReplyToCommand(iClient, "Usage: {green}[tag]color{default} <color name>");
+		KS_ReplyToCommand(iClient, "Usage: {green}[tag]color{default} <color name> <all|hud>");
 		return Plugin_Handled;
 	}
 	
@@ -378,15 +420,15 @@ public Action Command_Color(int iClient, int iArgs)
 		{
 			ExplodeString(sColorString, "^", sColorBuffer, 3, sizeof(sColorBuffer[]));
 			
-			KS_GetPropTypeName(KS_GetPropType(iProp), sPropType, sizeof(sPropType));
+			KS_GetEntityTypeName(KS_GetEntityType(iProp), sEntityType, sizeof(sEntityType));
 			
 			KS_SetColor(iProp, StringToInt(sColorBuffer[0]), StringToInt(sColorBuffer[1]), StringToInt(sColorBuffer[2]), -1);
-			if(KS_CheckPropType(iProp, "emitter"))
+			if (KS_CheckEntityType(iProp, "emitter"))
 				KS_SetColor(KS_GetEmitterAttachment(iProp), StringToInt(sColorBuffer[0]), StringToInt(sColorBuffer[1]), StringToInt(sColorBuffer[2]), -1);
-		
+			
 			KS_ChangeBeam(iClient, iProp);
 			
-			KS_ReplyToCommand(iClient, "Set color on %s to {green}%s{default}.", sPropType, sColor);
+			KS_ReplyToCommand(iClient, "Set color on %s to {green}%s{default}.", sEntityType, sColor);
 		} else {
 			KS_ReplyToCommand(iClient, "Color {green}%s{default} not found.", sColor);
 			return Plugin_Handled;
@@ -401,7 +443,7 @@ public Action Command_Color(int iClient, int iArgs)
 
 public Action Command_Delete(int iClient, int iArgs)
 {
-	char sPropType[32];
+	char sEntityType[32];
 	
 	if (KS_GetClientAimTarget(iClient) == -1)
 	{
@@ -413,26 +455,26 @@ public Action Command_Delete(int iClient, int iArgs)
 	
 	if (KS_CheckOwner(iClient, iProp))
 	{
-		KS_GetPropTypeName(KS_GetPropType(iProp), sPropType, sizeof(sPropType));
+		KS_GetEntityTypeName(KS_GetEntityType(iProp), sEntityType, sizeof(sEntityType));
 		
-		(KS_CheckPropType(iProp, "prop")) ? KS_SubFromPropCount(iClient) : KS_SubFromCelCount(iClient);
+		(KS_CheckEntityCatagory(iProp, ENTCATAGORY_PROP)) ? KS_SubFromPropCount(iClient) : KS_SubFromCelCount(iClient);
 		
 		Call_StartForward(g_hOnEntityRemove);
-	
+		
 		Call_PushCell(iProp);
 		Call_PushCell(iClient);
-		Call_PushCell(view_as<int>(!KS_CheckPropType(iProp, "prop")));
+		Call_PushCell(view_as<int>(!KS_CheckEntityCatagory(iProp, ENTCATAGORY_PROP)));
 		
 		Call_Finish();
 		
-		if(KS_CheckPropType(iProp, "emitter"))
+		if (KS_CheckEntityType(iProp, "emitter"))
 			AcceptEntityInput(KS_GetEmitterAttachment(iProp), "TurnOff");
 		
 		KS_RemovalBeam(iClient, iProp);
 		
 		KS_DissolveEntity(iProp);
 		
-		KS_ReplyToCommand(iClient, "Removed %s.", sPropType);
+		KS_ReplyToCommand(iClient, "Removed %s.", sEntityType);
 	} else {
 		KS_NotYours(iClient, iProp);
 		return Plugin_Handled;
@@ -469,7 +511,7 @@ public Action Command_Door(int iClient, int iArgs)
 	
 	Call_PushCell(iDoor);
 	Call_PushCell(iClient);
-	Call_PushCell(PROPTYPE_DOOR);
+	Call_PushCell(ENTTYPE_DOOR);
 	
 	Call_Finish();
 	
@@ -480,7 +522,7 @@ public Action Command_Door(int iClient, int iArgs)
 
 public Action Command_FreezeIt(int iClient, int iArgs)
 {
-	char sPropType[32];
+	char sEntityType[32];
 	
 	if (KS_GetClientAimTarget(iClient) == -1)
 	{
@@ -492,15 +534,15 @@ public Action Command_FreezeIt(int iClient, int iArgs)
 	
 	if (KS_CheckOwner(iClient, iProp))
 	{
-		KS_GetPropTypeName(KS_GetPropType(iProp), sPropType, sizeof(sPropType));
+		KS_GetEntityTypeName(KS_GetEntityType(iProp), sEntityType, sizeof(sEntityType));
 		
-		if (KS_CheckPropType(iProp, "door"))
+		if (KS_CheckEntityType(iProp, "door"))
 		{
 			KS_ReplyToCommand(iClient, "Door has been locked.");
 			
 			AcceptEntityInput(iProp, "lock");
 		} else {
-			KS_ReplyToCommand(iClient, "Disabled motion on %s.", sPropType);
+			KS_ReplyToCommand(iClient, "Disabled motion on %s.", sEntityType);
 			
 			KS_SetFrozen(iProp, true);
 		}
@@ -533,7 +575,7 @@ public Action Command_Internet(int iClient, int iArgs)
 	
 	Call_PushCell(iInternet);
 	Call_PushCell(iClient);
-	Call_PushCell(PROPTYPE_INTERNET);
+	Call_PushCell(ENTTYPE_INTERNET);
 	
 	Call_Finish();
 	
@@ -654,10 +696,10 @@ public Action Command_Rotate(int iClient, int iArgs)
 		fAngles[1] = fPropAngles[1] += StringToFloat(sY);
 		fAngles[2] = fPropAngles[2] += StringToFloat(sZ);
 		
-		if(KS_CheckPropType(iProp, "door"))
+		if (KS_CheckEntityType(iProp, "door"))
 		{
 			DispatchKeyValueVector(iProp, "angles", fAngles);
-		}else{
+		} else {
 			TeleportEntity(iProp, NULL_VECTOR, fAngles, NULL_VECTOR);
 		}
 		
@@ -676,45 +718,45 @@ public Action Command_Rotate(int iClient, int iArgs)
 
 public Action Command_SetOwner(int iClient, int iArgs)
 {
-	if(KS_GetClientAimTarget(iClient) == -1)
+	if (KS_GetClientAimTarget(iClient) == -1)
 	{
 		KS_NotLooking(iClient);
 		return Plugin_Handled;
 	}
 	
-	char sPropType[64], sTarget[PLATFORM_MAX_PATH];
+	char sEntityType[64], sTarget[PLATFORM_MAX_PATH];
 	int iProp = KS_GetClientAimTarget(iClient);
 	
 	GetCmdArg(1, sTarget, sizeof(sTarget));
 	
-	if(StrEqual(sTarget, ""))
+	if (StrEqual(sTarget, ""))
 	{
-		KS_GetPropTypeName(KS_GetPropType(iProp), sPropType, sizeof(sPropType));
+		KS_GetEntityTypeName(KS_GetEntityType(iProp), sEntityType, sizeof(sEntityType));
 		
 		KS_SetOwner(iClient, iProp);
 		
 		KS_ChangeBeam(iClient, iProp);
 		
-		KS_ReplyToCommand(iClient, "Set ownership of {green}%s{default} to {green}%N{default}.", sPropType, iClient);
-	
+		KS_ReplyToCommand(iClient, "Set ownership of {green}%s{default} to {green}%N{default}.", sEntityType, iClient);
+		
 		return Plugin_Handled;
 	}
 	
 	int iTarget = FindTarget(iClient, sTarget, true, false);
 	
-	if(iTarget == -1)
+	if (iTarget == -1)
 	{
 		KS_ReplyToCommand(iClient, "Cannot find specified target.");
 		return Plugin_Handled;
 	}
 	
 	KS_SetOwner(iTarget, iProp);
-		
+	
 	KS_ChangeBeam(iClient, iProp);
-		
-	KS_ReplyToCommand(iClient, "Set ownership of {green}%s{default} to {green}%N{default}.", sPropType, iTarget);
-	KS_ReplyToCommand(iTarget, "{green}%N{default} set ownership of {green}%s{default} to {green}%N{default}.", iClient, sPropType, iTarget);
-
+	
+	KS_ReplyToCommand(iClient, "Set ownership of {green}%s{default} to {green}%N{default}.", sEntityType, iTarget);
+	KS_ReplyToCommand(iTarget, "{green}%N{default} set ownership of {green}%s{default} to {green}%N{default}.", iClient, sEntityType, iTarget);
+	
 	return Plugin_Handled;
 }
 
@@ -740,7 +782,7 @@ public Action Command_SetURL(int iClient, int iArgs)
 	
 	if (KS_CheckOwner(iClient, iProp))
 	{
-		if(KS_GetPropType(iProp) == PROPTYPE_INTERNET)
+		if (KS_CheckEntityType(iProp, "internet"))
 		{
 			if (StrContains(sURL, "http://", false) != -1 || StrContains(sURL, "https://", false) != -1)
 			{  } else {
@@ -754,7 +796,7 @@ public Action Command_SetURL(int iClient, int iArgs)
 			KS_ReplyToCommand(iClient, "Updated url on internet cel.");
 			
 			return Plugin_Handled;
-		}else{
+		} else {
 			KS_ReplyToCommand(iClient, "You can only use this command on internet cels.");
 			return Plugin_Handled;
 		}
@@ -793,10 +835,10 @@ public Action Command_Spawn(int iClient, int iArgs)
 		int iProp = KS_SpawnProp(iClient, sAlias, sSpawnBuffer[0], sSpawnBuffer[1], fAngles, fOrigin, 255, 255, 255, 255);
 		
 		Call_StartForward(g_hOnPropSpawn);
-	
+		
 		Call_PushCell(iProp);
 		Call_PushCell(iClient);
-		Call_PushCell(KS_GetPropType(iProp));
+		Call_PushCell(KS_GetEntityType(iProp));
 		
 		Call_Finish();
 		
@@ -811,7 +853,7 @@ public Action Command_Spawn(int iClient, int iArgs)
 
 public Action Command_Solid(int iClient, int iArgs)
 {
-	char sPropType[128];
+	char sEntityType[128];
 	
 	if (KS_GetClientAimTarget(iClient) == -1)
 	{
@@ -823,9 +865,9 @@ public Action Command_Solid(int iClient, int iArgs)
 	
 	if (KS_CheckOwner(iClient, iProp))
 	{
-		KS_GetPropTypeName(KS_GetPropType(iProp), sPropType, sizeof(sPropType));
+		KS_GetEntityTypeName(KS_GetEntityType(iProp), sEntityType, sizeof(sEntityType));
 		
-		if (KS_CheckPropType(iProp, "cycler"))
+		if (KS_CheckEntityType(iProp, "cycler"))
 		{
 			KS_ReplyToCommand(iClient, "You cannot use this command on this prop.");
 			return Plugin_Handled;
@@ -833,7 +875,7 @@ public Action Command_Solid(int iClient, int iArgs)
 		
 		KS_SetSolid(iProp, !KS_IsSolid(iProp));
 		
-		KS_ReplyToCommand(iClient, "Turned solidicity %s on %s.", KS_IsSolid(iProp) ? "on" : "off", sPropType);
+		KS_ReplyToCommand(iClient, "Turned solidicity %s on %s.", KS_IsSolid(iProp) ? "on" : "off", sEntityType);
 		
 		KS_ChangeBeam(iClient, iProp);
 	} else {
@@ -867,7 +909,7 @@ public Action Command_Stand(int iClient, int iArgs)
 
 public Action Command_UnfreezeIt(int iClient, int iArgs)
 {
-	char sPropType[32];
+	char sEntityType[32];
 	
 	if (KS_GetClientAimTarget(iClient) == -1)
 	{
@@ -879,15 +921,15 @@ public Action Command_UnfreezeIt(int iClient, int iArgs)
 	
 	if (KS_CheckOwner(iClient, iProp))
 	{
-		KS_GetPropTypeName(KS_GetPropType(iProp), sPropType, sizeof(sPropType));
+		KS_GetEntityTypeName(KS_GetEntityType(iProp), sEntityType, sizeof(sEntityType));
 		
-		if (KS_CheckPropType(iProp, "door"))
+		if (KS_CheckEntityType(iProp, "door"))
 		{
 			KS_ReplyToCommand(iClient, "Door has been unlocked.");
 			
 			AcceptEntityInput(iProp, "unlock");
 		} else {
-			KS_ReplyToCommand(iClient, "Enabled motion on %s.", sPropType);
+			KS_ReplyToCommand(iClient, "Enabled motion on %s.", sEntityType);
 			
 			KS_SetFrozen(iProp, false);
 		}
@@ -901,12 +943,92 @@ public Action Command_UnfreezeIt(int iClient, int iArgs)
 	return Plugin_Handled;
 }
 
-//Plugin Natives:
+public Action Handle_Chat(int iClient, char[] sCommand, int iArgs)
+{
+	if (IsChatTrigger())
+	{
+		return Plugin_Handled;
+	}
+	
+	return Plugin_Continue;
+}
+
+//Events:
+public Action Event_Connect(Event eEvent, const char[] sName, bool bDontBroadcast)
+{
+	if (!bDontBroadcast)
+	{
+		char sClientName[33], sNetworkID[22], sAddress[32];
+		
+		eEvent.GetString("name", sClientName, sizeof(sClientName));
+		eEvent.GetString("networkid", sNetworkID, sizeof(sNetworkID));
+		eEvent.GetString("address", sAddress, sizeof(sAddress));
+		
+		Event eNewEvent = CreateEvent("player_connect", true);
+		eNewEvent.SetString("name", sClientName);
+		
+		eNewEvent.SetInt("index", GetEventInt(eEvent, "index"));
+		eNewEvent.SetInt("userid", GetEventInt(eEvent, "userid"));
+		
+		eNewEvent.SetString("networkid", sNetworkID);
+		eNewEvent.SetString("address", sAddress);
+		
+		eNewEvent.Fire(true);
+		
+		return Plugin_Handled;
+	}
+	
+	return Plugin_Handled;
+}
+
+public Action Event_Death(Event eEvent, const char[] sName, bool bDontBroadcast)
+{
+	int iClient = GetClientOfUserId(eEvent.GetInt("userid"));
+	
+	int iRagdoll = GetEntPropEnt(iClient, Prop_Send, "m_hRagdoll");
+	
+	IgniteEntity(iRagdoll, 3.0);
+	
+	CreateTimer(2.0, Timer_DisRemove, EntIndexToEntRef(iRagdoll));
+}
+
+public Action Event_Disconnect(Event eEvent, const char[] sName, bool bDontBroadcast)
+{
+	if (!bDontBroadcast)
+	{
+		char sClientName[33], sNetworkID[22], sReason[65];
+		
+		eEvent.GetString("name", sClientName, sizeof(sClientName));
+		eEvent.GetString("networkid", sNetworkID, sizeof(sNetworkID));
+		eEvent.GetString("reason", sReason, sizeof(sReason));
+		
+		Event eNewEvent = CreateEvent("player_disconnect", true);
+		eNewEvent.SetInt("userid", GetEventInt(eEvent, "userid"));
+		eNewEvent.SetString("reason", sReason);
+		eNewEvent.SetString("name", sClientName);
+		eNewEvent.SetString("networkid", sNetworkID);
+		
+		eNewEvent.Fire(true);
+		
+		return Plugin_Handled;
+	}
+	
+	return Plugin_Handled;
+}
+
+public Action Event_Spawn(Event eEvent, const char[] sName, bool bDontBroadcast)
+{
+	int iClient = GetClientOfUserId(eEvent.GetInt("userid"));
+	
+	KS_SetNoKill(iClient, view_as<bool>(KS_GetNoKill(iClient)));
+}
+
+//Natives:
 public int Native_AddToCelCount(Handle hPlugin, int iNumParams)
 {
 	int iClient = GetNativeCell(1);
 	
-	int iCount = KS_GetCelCount(iClient), iFinalCount = iCount++;
+	int iCount = KS_GetCelCount(iClient), iFinalCount = iCount += 1;
 	
 	KS_SetCelCount(iClient, iFinalCount);
 }
@@ -915,7 +1037,7 @@ public int Native_AddToPropCount(Handle hPlugin, int iNumParams)
 {
 	int iClient = GetNativeCell(1);
 	
-	int iCount = KS_GetPropCount(iClient), iFinalCount = iCount++;
+	int iCount = KS_GetPropCount(iClient), iFinalCount = iCount += 1;
 	
 	KS_SetPropCount(iClient, iFinalCount);
 }
@@ -990,7 +1112,14 @@ public int Native_CheckPropCount(Handle hPlugin, int iNumParams)
 	return (KS_GetPropCount(iClient) >= KS_GetPropLimit()) ? false : true;
 }
 
-public int Native_CheckPropType(Handle hPlugin, int iNumParams)
+public int Native_CheckEntityCatagory(Handle hPlugin, int iNumParams)
+{
+	int iEntity = GetNativeCell(1);
+	
+	return (KS_GetEntityCatagory(iEntity) == view_as<EntityCatagory>(GetNativeCell(2))) ? true : false;
+}
+
+public int Native_CheckEntityType(Handle hPlugin, int iNumParams)
 {
 	char sPropCheck[PLATFORM_MAX_PATH];
 	
@@ -998,7 +1127,7 @@ public int Native_CheckPropType(Handle hPlugin, int iNumParams)
 	
 	GetNativeString(2, sPropCheck, sizeof(sPropCheck));
 	
-	return (KS_GetPropType(iEntity) == KS_GetPropTypeFromName(sPropCheck)) ? true : false;
+	return (KS_GetEntityType(iEntity) == KS_GetEntityTypeFromName(sPropCheck)) ? true : false;
 }
 
 public int Native_CheckSpawnDB(Handle hPlugin, int iNumParams)
@@ -1073,7 +1202,7 @@ public int Native_GetColor(Handle hPlugin, int iNumParams)
 	int iColor[4];
 	int iEntity = GetNativeCell(1);
 	
-	if(g_iColor[iEntity][0] == 0 && g_iColor[iEntity][1] == 0 && g_iColor[iEntity][2] == 0 && g_iColor[iEntity][3] == 0)
+	if (g_iColor[iEntity][0] == 0 && g_iColor[iEntity][1] == 0 && g_iColor[iEntity][2] == 0 && g_iColor[iEntity][3] == 0)
 	{
 		GetEntityRenderColor(iEntity, iColor[0], iColor[1], iColor[2], iColor[3]);
 		KS_SetColor(iEntity, iColor[0], iColor[1], iColor[2], iColor[3]);
@@ -1103,6 +1232,147 @@ public int Native_GetCrosshairHitOrigin(Handle hPlugin, int iNumParams)
 	}
 	
 	SetNativeArray(2, fCrosshairOrigin, 3);
+}
+
+public int Native_GetEntityCatagory(Handle hPlugin, int iNumParams)
+{
+	int iEntity = GetNativeCell(1);
+	
+	EntityType etEntityType = KS_GetEntityType(iEntity);
+	
+	if (etEntityType == ENTTYPE_DOOR || etEntityType == ENTTYPE_EMITTER || etEntityType == ENTTYPE_INTERNET)
+	{
+		return view_as<int>(ENTCATAGORY_CEL);
+	} else if (etEntityType == ENTTYPE_CYCLER || etEntityType == ENTTYPE_DYNAMIC || etEntityType == ENTTYPE_PHYSICS)
+	{
+		return view_as<int>(ENTCATAGORY_PROP);
+	} else {
+		return view_as<int>(ENTCATAGORY_UNKNOWN);
+	}
+}
+
+public int Native_GetEntityCatagoryName(Handle hPlugin, int iNumParams)
+{
+	char sEntityCatagory[PLATFORM_MAX_PATH];
+	int iMaxLength = GetNativeCell(3);
+	
+	switch (view_as<EntityCatagory>(GetNativeCell(1)))
+	{
+		case ENTCATAGORY_CEL:
+		{
+			Format(sEntityCatagory, sizeof(sEntityCatagory), "cel entity");
+		}
+		case ENTCATAGORY_PROP:
+		{
+			Format(sEntityCatagory, sizeof(sEntityCatagory), "prop entity");
+		}
+		case ENTCATAGORY_UNKNOWN:
+		{
+			Format(sEntityCatagory, sizeof(sEntityCatagory), "unknown entity");
+		}
+	}
+	
+	SetNativeString(2, sEntityCatagory, iMaxLength);
+}
+
+public int Native_GetEntityType(Handle hPlugin, int iNumParams)
+{
+	char sClassname[64];
+	
+	int iEntity = GetNativeCell(1);
+	
+	GetEntityClassname(iEntity, sClassname, sizeof(sClassname));
+	
+	if (StrEqual(sClassname, "cycler", false))
+	{
+		return view_as<int>(ENTTYPE_CYCLER);
+	} else if (StrEqual(sClassname, "cel_door", false))
+	{
+		return view_as<int>(ENTTYPE_DOOR);
+	} else if (StrEqual(sClassname, "cel_internet", false))
+	{
+		return view_as<int>(ENTTYPE_INTERNET);
+	} else if (StrContains(sClassname, "emitter_", false) != -1)
+	{
+		return view_as<int>(ENTTYPE_EMITTER);
+	} else if (StrContains(sClassname, "prop_dynamic", false) != -1)
+	{
+		return view_as<int>(ENTTYPE_DYNAMIC);
+	} else if (StrContains(sClassname, "prop_physics", false) != -1)
+	{
+		return view_as<int>(ENTTYPE_PHYSICS);
+	} else {
+		return view_as<int>(ENTTYPE_UNKNOWN);
+	}
+}
+
+public int Native_GetEntityTypeFromName(Handle hPlugin, int iNumParams)
+{
+	char sEntityType[PLATFORM_MAX_PATH];
+	
+	GetNativeString(1, sEntityType, sizeof(sEntityType));
+	
+	if (StrEqual(sEntityType, "cycler", false))
+	{
+		return view_as<int>(ENTTYPE_CYCLER);
+	} else if (StrEqual(sEntityType, "door", false))
+	{
+		return view_as<int>(ENTTYPE_DOOR);
+	} else if (StrEqual(sEntityType, "dynamic", false))
+	{
+		return view_as<int>(ENTTYPE_DYNAMIC);
+	} else if (StrEqual(sEntityType, "emitter", false))
+	{
+		return view_as<int>(ENTTYPE_EMITTER);
+	} else if (StrEqual(sEntityType, "internet", false))
+	{
+		return view_as<int>(ENTTYPE_INTERNET);
+	} else if (StrEqual(sEntityType, "physics", false))
+	{
+		return view_as<int>(ENTTYPE_PHYSICS);
+	} else {
+		return view_as<int>(ENTTYPE_UNKNOWN);
+	}
+}
+
+public int Native_GetEntityTypeName(Handle hPlugin, int iNumParams)
+{
+	char sEntityType[PLATFORM_MAX_PATH];
+	int iMaxLength = GetNativeCell(3);
+	
+	switch (view_as<EntityType>(GetNativeCell(1)))
+	{
+		case ENTTYPE_CYCLER:
+		{
+			Format(sEntityType, sizeof(sEntityType), "cycler prop");
+		}
+		case ENTTYPE_DOOR:
+		{
+			Format(sEntityType, sizeof(sEntityType), "door cel");
+		}
+		case ENTTYPE_DYNAMIC:
+		{
+			Format(sEntityType, sizeof(sEntityType), "dynamic prop");
+		}
+		case ENTTYPE_EMITTER:
+		{
+			Format(sEntityType, sizeof(sEntityType), "emitter cel");
+		}
+		case ENTTYPE_INTERNET:
+		{
+			Format(sEntityType, sizeof(sEntityType), "internet cel");
+		}
+		case ENTTYPE_PHYSICS:
+		{
+			Format(sEntityType, sizeof(sEntityType), "physics prop");
+		}
+		case ENTTYPE_UNKNOWN:
+		{
+			Format(sEntityType, sizeof(sEntityType), "unknown prop type");
+		}
+	}
+	
+	SetNativeString(2, sEntityType, iMaxLength);
 }
 
 public int Native_GetInternetURL(Handle hPlugin, int iNumParams)
@@ -1146,106 +1416,6 @@ public int Native_GetPropName(Handle hPlugin, int iNumParams)
 	SetNativeString(2, g_sPropName[iEntity], iMaxLength);
 }
 
-public int Native_GetPropType(Handle hPlugin, int iNumParams)
-{
-	char sClassname[64];
-	
-	int iEntity = GetNativeCell(1);
-	
-	GetEntityClassname(iEntity, sClassname, sizeof(sClassname));
-	
-	if (StrEqual(sClassname, "cycler", false))
-	{
-		return view_as<int>(PROPTYPE_CYCLER);
-	} else if (StrEqual(sClassname, "cel_door", false))
-	{
-		return view_as<int>(PROPTYPE_DOOR);
-	} else if (StrEqual(sClassname, "cel_internet", false))
-	{
-		return view_as<int>(PROPTYPE_INTERNET);
-	} else if (StrContains(sClassname, "emitter_", false) != -1)
-	{
-		return view_as<int>(PROPTYPE_EMITTER);
-	} else if (StrContains(sClassname, "prop_dynamic", false) != -1)
-	{
-		return view_as<int>(PROPTYPE_DYNAMIC);
-	} else if (StrContains(sClassname, "prop_physics", false) != -1)
-	{
-		return view_as<int>(PROPTYPE_PHYSICS);
-	} else {
-		return view_as<int>(PROPTYPE_UNKNOWN);
-	}
-}
-
-public int Native_GetPropTypeFromName(Handle hPlugin, int iNumParams)
-{
-	char sPropType[PLATFORM_MAX_PATH];
-	
-	GetNativeString(1, sPropType, sizeof(sPropType));
-	
-	if(StrEqual(sPropType, "cycler", false))
-	{
-		return view_as<int>(PROPTYPE_CYCLER);
-	}else if(StrEqual(sPropType, "door", false))
-	{
-		return view_as<int>(PROPTYPE_DOOR);
-	}else if(StrEqual(sPropType, "dynamic", false))
-	{
-		return view_as<int>(PROPTYPE_DYNAMIC);
-	}else if(StrEqual(sPropType, "emitter", false))
-	{
-		return view_as<int>(PROPTYPE_EMITTER);
-	}else if(StrEqual(sPropType, "internet", false))
-	{
-		return view_as<int>(PROPTYPE_INTERNET);
-	}else if(StrEqual(sPropType, "physics", false))
-	{
-		return view_as<int>(PROPTYPE_PHYSICS);
-	}else{
-		return view_as<int>(PROPTYPE_UNKNOWN);
-	}
-}
-
-public int Native_GetPropTypeName(Handle hPlugin, int iNumParams)
-{
-	char sPropType[PLATFORM_MAX_PATH];
-	int iMaxLength = GetNativeCell(3);
-	
-	switch(view_as<CelPropType>(GetNativeCell(1)))
-	{
-		case PROPTYPE_CYCLER:
-		{
-			Format(sPropType, sizeof(sPropType), "cycler prop");
-		}
-		case PROPTYPE_DOOR:
-		{
-			Format(sPropType, sizeof(sPropType), "door cel");
-		}
-		case PROPTYPE_DYNAMIC:
-		{
-			Format(sPropType, sizeof(sPropType), "dynamic prop");
-		}
-		case PROPTYPE_EMITTER:
-		{
-			Format(sPropType, sizeof(sPropType), "emitter cel");
-		}
-		case PROPTYPE_INTERNET:
-		{
-			Format(sPropType, sizeof(sPropType), "internet cel");
-		}
-		case PROPTYPE_PHYSICS:
-		{
-			Format(sPropType, sizeof(sPropType), "physics prop");
-		}
-		case PROPTYPE_UNKNOWN:
-		{
-			Format(sPropType, sizeof(sPropType), "unknown prop type");
-		}
-	}
-	
-	SetNativeString(2, sPropType, iMaxLength);
-}
-
 public int Native_IsEntity(Handle hPlugin, int iNumParams)
 {
 	int iEntity = GetNativeCell(1);
@@ -1258,6 +1428,13 @@ public int Native_IsFrozen(Handle hPlugin, int iNumParams)
 	int iEntity = GetNativeCell(1);
 	
 	return g_bFrozen[iEntity];
+}
+
+public int Native_IsPlayer(Handle hPlugin, int iNumParams)
+{
+	int iClient = GetNativeCell(1);
+	
+	return g_bPlayer[iClient];
 }
 
 public int Native_IsSolid(Handle hPlugin, int iNumParams)
@@ -1279,11 +1456,11 @@ public int Native_NotYours(Handle hPlugin, int iNumParams)
 	int iClient = GetNativeCell(1);
 	int iEntity = GetNativeCell(2);
 	
-	char sPropType[32];
+	char sEntityType[32];
 	
-	KS_GetPropTypeName(KS_GetPropType(iEntity), sPropType, sizeof(sPropType));
+	KS_GetEntityTypeName(KS_GetEntityType(iEntity), sEntityType, sizeof(sEntityType));
 	
-	KS_ReplyToCommand(iClient, "This %s does not belong to you.", sPropType);
+	KS_ReplyToCommand(iClient, "This %s does not belong to you.", sEntityType);
 }
 
 public int Native_PlayChatMessageSound(Handle hPlugin, int iNumParams)
@@ -1301,7 +1478,7 @@ public int Native_PrintToChat(Handle hPlugin, int iNumParams)
 	
 	FormatNativeString(0, 2, 3, sizeof(sBuffer), iWritten, sBuffer);
 	
-	CPrintToChat(iPlayer, "{green}King's Sandbox{default}: %s", sBuffer);
+	CPrintToChat(iPlayer, "{blue}Sandbox{default}: %s", sBuffer);
 	
 	KS_PlayChatMessageSound(iPlayer);
 }
@@ -1314,7 +1491,7 @@ public int Native_PrintToChatAll(Handle hPlugin, int iNumParams)
 	
 	FormatNativeString(0, 1, 2, sizeof(sBuffer), iWritten, sBuffer);
 	
-	CPrintToChatAll("{green}King's Sandbox{default}: %s", sBuffer);
+	CPrintToChatAll("{blue}Sandbox{default}: %s", sBuffer);
 }
 
 public int Native_RemovalBeam(Handle hPlugin, int iNumParams)
@@ -1355,9 +1532,9 @@ public int Native_ReplyToCommand(Handle hPlugin, int iNumParams)
 	{
 		CRemoveTags(sBuffer, sizeof(sBuffer));
 		
-		PrintToConsole(iPlayer, "King's Sandbox: %s", sBuffer);
+		PrintToConsole(iPlayer, "Sandbox: %s", sBuffer);
 	} else {
-		CPrintToChat(iPlayer, "{green}King's Sandbox{default}: %s", sBuffer);
+		CPrintToChat(iPlayer, "{blue}Sandbox{default}: %s", sBuffer);
 		
 		KS_PlayChatMessageSound(iPlayer);
 	}
@@ -1441,6 +1618,13 @@ public int Native_SetOwner(Handle hPlugin, int iNumParams)
 	int iEntity = GetNativeCell(2);
 	
 	g_iOwner[iEntity] = GetClientSerial(iClient);
+}
+
+public int Native_SetPlayer(Handle hPlugin, int iNumParams)
+{
+	int iClient = GetNativeCell(1);
+	
+	g_bPlayer[iClient] = view_as<bool>(GetNativeCell(2));
 }
 
 public int Native_SetPropCount(Handle hPlugin, int iNumParams)
@@ -1587,12 +1771,12 @@ public int Native_SpawnInternet(Handle hPlugin, int iNumParams)
 
 public int Native_SpawnProp(Handle hPlugin, int iNumParams)
 {
-	char sAlias[64], sModel[64], sPropType[64];
+	char sAlias[64], sModel[64], sEntityType[64];
 	float fAngles[3], fOrigin[3];
 	int iClient = GetNativeCell(1), iColor[4];
 	
 	GetNativeString(2, sAlias, sizeof(sAlias));
-	GetNativeString(3, sPropType, sizeof(sPropType));
+	GetNativeString(3, sEntityType, sizeof(sEntityType));
 	GetNativeString(4, sModel, sizeof(sModel));
 	
 	GetNativeArray(5, fAngles, 3);
@@ -1603,7 +1787,7 @@ public int Native_SpawnProp(Handle hPlugin, int iNumParams)
 	iColor[2] = GetNativeCell(9);
 	iColor[3] = GetNativeCell(10);
 	
-	int iProp = CreateEntityByName(sPropType);
+	int iProp = CreateEntityByName(sEntityType);
 	
 	if (iProp == -1)
 		return -1;
@@ -1628,7 +1812,7 @@ public int Native_SpawnProp(Handle hPlugin, int iNumParams)
 	
 	KS_SetPropName(iProp, sAlias);
 	
-	if (!StrEqual(sPropType, "cycler"))
+	if (!StrEqual(sEntityType, "cycler"))
 		KS_SetSolid(iProp, true);
 	
 	return iProp;
@@ -1638,7 +1822,7 @@ public int Native_SubFromCelCount(Handle hPlugin, int iNumParams)
 {
 	int iClient = GetNativeCell(1);
 	
-	int iCount = KS_GetCelCount(iClient), iFinalCount = iCount--;
+	int iCount = KS_GetCelCount(iClient), iFinalCount = iCount -= 1;
 	
 	KS_SetCelCount(iClient, iFinalCount);
 }
@@ -1647,12 +1831,12 @@ public int Native_SubFromPropCount(Handle hPlugin, int iNumParams)
 {
 	int iClient = GetNativeCell(1);
 	
-	int iCount = KS_GetPropCount(iClient), iFinalCount = iCount--;
+	int iCount = KS_GetPropCount(iClient), iFinalCount = iCount -= 1;
 	
 	KS_SetPropCount(iClient, iFinalCount);
 }
 
-//Plugin Stocks:
+//Stocks:
 stock bool KS_FilterPlayer(int iEntity, any iContentsMask)
 {
 	return iEntity > MaxClients;

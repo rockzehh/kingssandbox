@@ -29,16 +29,16 @@ public Plugin myinfo =
 	name = "King's Sandbox: Help", 
 	author = "King Nothing", 
 	description = "Helpful commands for server owners and players.", 
-	version = GLOBALVERSION, 
+	version = SANDBOX_VERSION, 
 	url = "https://github.com/rockzehh/kingssandbox"
 };
 
 public void OnPluginStart()
 {
-	g_cvColorListURL = CreateConVar("ks_color_list_url", "https://raw.githubusercontent.com/rockzehh/kingssandbox/master/addons/sourcemod/data/kingssandbox/exports/colorlist.html", "URL for the color list command.");
-	g_cvCommandListURL = CreateConVar("ks_command_list_url", "https://raw.githubusercontent.com/rockzehh/kingssandbox/master/addons/sourcemod/data/kingssandbox/exports/commandlist.html", "URL for the command list command.");
-	g_cvEmitterListURL = CreateConVar("ks_emitter_list_url", "https://rockzehh.github.io/kingssandbox/emitters.html", "URL for the emitter list command.");
-	g_cvPropListURL = CreateConVar("ks_prop_list_url", "https://raw.githubusercontent.com/rockzehh/kingssandbox/master/addons/sourcemod/data/kingssandbox/exports/proplist.html", "URL for the prop list command.");
+	g_cvColorListURL = CreateConVar("ks_color_list_url", "https://rockzehh.github.io/kingssandbox/1.1.0.0/colorlist_export.html", "URL for the color list command.");
+	g_cvCommandListURL = CreateConVar("ks_command_list_url", "https://rockzehh.github.io/kingssandbox/1.1.0.0/commandlist_export.html", "URL for the command list command.");
+	g_cvEmitterListURL = CreateConVar("ks_emitter_list_url", "https://rockzehh.github.io/kingssandbox/1.1.0.0/emitters.html", "URL for the emitter list command.");
+	g_cvPropListURL = CreateConVar("ks_prop_list_url", "https://rockzehh.github.io/kingssandbox/1.1.0.0/proplist_export.html", "URL for the prop list command.");
 	
 	g_cvColorListURL.AddChangeHook(KSHelp_OnConVarChanged);
 	g_cvCommandListURL.AddChangeHook(KSHelp_OnConVarChanged);
@@ -81,7 +81,7 @@ public void KSHelp_OnConVarChanged(ConVar cvConVar, const char[] sOldValue, cons
 	{
 		g_cvEmitterListURL.GetString(g_sEmitterListURL, sizeof(g_sEmitterListURL));
 		PrintToServer("King's Sandbox: Emitter list url updated to %s.", sNewValue);
-	}else if (cvConVar == g_cvPropListURL) {
+	} else if (cvConVar == g_cvPropListURL) {
 		g_cvPropListURL.GetString(g_sPropListURL, sizeof(g_sPropListURL));
 		PrintToServer("King's Sandbox: Prop list url updated to %s.", sNewValue);
 	}
@@ -227,7 +227,7 @@ public int Native_ExportColorList(Handle hPlugin, int iNumParams)
 	if (!DirExists(sPath))
 		CreateDirectory(sPath, 511);
 	
-	BuildPath(Path_SM, sPath, sizeof(sPath), "data/kingssandbox/exports/colorlist.txt");
+	BuildPath(Path_SM, sPath, sizeof(sPath), "data/kingssandbox/exports/colorlist_export.txt");
 	
 	if (FileExists(sPath))
 		DeleteFile(sPath);
@@ -245,7 +245,7 @@ public int Native_ExportColorList(Handle hPlugin, int iNumParams)
 	
 	delete kvColors;
 	
-	PrintToServer("King's Sandbox: Exported color list to 'data/kingssandbox/export/colorlist.txt'.");
+	PrintToServer("King's Sandbox: Exported color list to 'data/kingssandbox/export/colorlist_export.txt'.");
 	
 	if (bHTML)
 	{
@@ -277,7 +277,7 @@ public int Native_ExportColorList(Handle hPlugin, int iNumParams)
 		if (!DirExists(sPath))
 			CreateDirectory(sPath, 511);
 		
-		BuildPath(Path_SM, sPath, sizeof(sPath), "data/kingssandbox/exports/colorlist.html");
+		BuildPath(Path_SM, sPath, sizeof(sPath), "data/kingssandbox/exports/colorlist_export.html");
 		
 		if (FileExists(sPath))
 			DeleteFile(sPath);
@@ -303,7 +303,7 @@ public int Native_ExportColorList(Handle hPlugin, int iNumParams)
 		
 		delete kvColorsHTML;
 		
-		PrintToServer("King's Sandbox: Exported color list to 'data/kingssandbox/export/colorlist.html'.");
+		PrintToServer("King's Sandbox: Exported color list to 'data/kingssandbox/export/colorlist_export.html'.");
 	}
 	
 	return true;
@@ -321,12 +321,12 @@ public int Native_ExportCommandList(Handle hPlugin, int iNumParams)
 	if (!DirExists(sPath))
 		CreateDirectory(sPath, 511);
 	
-	BuildPath(Path_SM, sPath, sizeof(sPath), "data/kingssandbox/exports/commandlist.txt");
+	BuildPath(Path_SM, sPath, sizeof(sPath), "data/kingssandbox/exports/commandlist_export.txt");
 	
 	if (FileExists(sPath))
 		DeleteFile(sPath);
 	
-	BuildPath(Path_SM, sPathHTML, sizeof(sPathHTML), "data/kingssandbox/exports/commandlist.html");
+	BuildPath(Path_SM, sPathHTML, sizeof(sPathHTML), "data/kingssandbox/exports/commandlist_export.html");
 	
 	if (FileExists(sPathHTML))
 		DeleteFile(sPathHTML);
@@ -360,7 +360,7 @@ public int Native_ExportCommandList(Handle hPlugin, int iNumParams)
 				
 				fCommandListHTML.WriteLine(sCommand);
 			}
-		}else if (StrContains(sDescription, "King's Sandbox-Server:", true) != -1)
+		} else if (StrContains(sDescription, "King's Sandbox-Server:", true) != -1)
 		{
 			ReplaceString(sDescription, sizeof(sDescription), "King's Sandbox-Server: ", "", true);
 			
@@ -379,9 +379,9 @@ public int Native_ExportCommandList(Handle hPlugin, int iNumParams)
 	
 	CloseHandle(hCommandIter);
 	
-	PrintToServer("King's Sandbox: Exported command list to 'data/kingssandbox/export/commandlist.txt'.");
+	PrintToServer("King's Sandbox: Exported command list to 'data/kingssandbox/export/commandlist_export.txt'.");
 	if (bHTML)
-		PrintToServer("King's Sandbox: Exported command list to 'data/kingssandbox/export/commandlist.html'.");
+		PrintToServer("King's Sandbox: Exported command list to 'data/kingssandbox/export/commandlist_export.html'.");
 	
 	fCommandList.Close();
 	if (bHTML)
@@ -414,7 +414,7 @@ public int Native_ExportPropList(Handle hPlugin, int iNumParams)
 	if (!DirExists(sPath))
 		CreateDirectory(sPath, 511);
 	
-	BuildPath(Path_SM, sPath, sizeof(sPath), "data/kingssandbox/exports/proplist.txt");
+	BuildPath(Path_SM, sPath, sizeof(sPath), "data/kingssandbox/exports/proplist_export.txt");
 	
 	if (FileExists(sPath))
 		DeleteFile(sPath);
@@ -430,7 +430,7 @@ public int Native_ExportPropList(Handle hPlugin, int iNumParams)
 	
 	fPropList.Close();
 	
-	PrintToServer("King's Sandbox: Exported prop list to 'data/kingssandbox/export/proplist.txt'.");
+	PrintToServer("King's Sandbox: Exported prop list to 'data/kingssandbox/export/proplist_export.txt'.");
 	
 	if (bHTML)
 	{
@@ -455,7 +455,7 @@ public int Native_ExportPropList(Handle hPlugin, int iNumParams)
 		if (!DirExists(sPath))
 			CreateDirectory(sPath, 511);
 		
-		BuildPath(Path_SM, sPath, sizeof(sPath), "data/kingssandbox/exports/proplist.html");
+		BuildPath(Path_SM, sPath, sizeof(sPath), "data/kingssandbox/exports/proplist_export.html");
 		
 		if (FileExists(sPath))
 			DeleteFile(sPath);
@@ -479,7 +479,7 @@ public int Native_ExportPropList(Handle hPlugin, int iNumParams)
 		
 		fPropListHTML.Close();
 		
-		PrintToServer("King's Sandbox: Exported prop list to 'data/kingssandbox/export/proplist.html'.");
+		PrintToServer("King's Sandbox: Exported prop list to 'data/kingssandbox/export/proplist_export.html'.");
 	}
 	
 	delete kvProps;

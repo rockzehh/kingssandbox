@@ -33,7 +33,7 @@ public Plugin myinfo =
 	name = "King's Sandbox: Emitters", 
 	author = "King Nothing", 
 	description = "Creates a effect emitter.", 
-	version = GLOBALVERSION, 
+	version = SANDBOX_VERSION, 
 	url = "https://github.com/rockzehh/kingssandbox"
 };
 
@@ -60,7 +60,7 @@ public Action Command_Emitter(int iClient, int iArgs)
 	
 	EmitterType etEmitterType = KS_GetEmitterTypeFromName(sEmitter);
 	
-	if(etEmitterType == EMITTER_UNKNOWN)
+	if (etEmitterType == EMITTER_UNKNOWN)
 	{
 		KS_ReplyToCommand(iClient, "Invalid emitter type.");
 		return Plugin_Handled;
@@ -118,25 +118,25 @@ public int Native_GetEmitterTypeFromName(Handle hPlugin, int iNumParams)
 	
 	GetNativeString(1, sEmitterName, sizeof(sEmitterName));
 	
-	if(StrContains("core", sEmitterName, false) != -1)
+	if (StrContains("core", sEmitterName, false) != -1)
 	{
 		return view_as<int>(EMITTER_CORE);
-	}else if(StrContains("explosion", sEmitterName, false) != -1)
+	} else if (StrContains("explosion", sEmitterName, false) != -1)
 	{
 		return view_as<int>(EMITTER_EXPLOSION);
-	}else if(StrContains("fire", sEmitterName, false) != -1)
+	} else if (StrContains("fire", sEmitterName, false) != -1)
 	{
 		return view_as<int>(EMITTER_FIRE);
-	}else if(StrContains("smokestack", sEmitterName, false) != -1)
+	} else if (StrContains("smokestack", sEmitterName, false) != -1)
 	{
 		return view_as<int>(EMITTER_SMOKESTACK);
-	}else if(StrContains("spotlight", sEmitterName, false) != -1)
+	} else if (StrContains("spotlight", sEmitterName, false) != -1)
 	{
 		return view_as<int>(EMITTER_SPOTLIGHT);
-	}else if(StrContains("steam", sEmitterName, false) != -1)
+	} else if (StrContains("steam", sEmitterName, false) != -1)
 	{
 		return view_as<int>(EMITTER_STEAM);
-	}else{
+	} else {
 		return view_as<int>(EMITTER_UNKNOWN);
 	}
 }
