@@ -127,6 +127,9 @@ public int Native_GetEmitterTypeFromName(Handle hPlugin, int iNumParams)
 	} else if (StrContains("fire", sEmitterName, false) != -1)
 	{
 		return view_as<int>(EMITTER_FIRE);
+	} else if (StrContains("shake", sEmitterName, false) != -1)
+	{
+		return view_as<int>(EMITTER_SHAKE);
 	} else if (StrContains("smokestack", sEmitterName, false) != -1)
 	{
 		return view_as<int>(EMITTER_SMOKESTACK);
@@ -160,6 +163,10 @@ public int Native_GetEmitterTypeName(Handle hPlugin, int iNumParams)
 		case EMITTER_FIRE:
 		{
 			Format(sEmitterName, sizeof(sEmitterName), "fire");
+		}
+		case EMITTER_SHAKE:
+		{
+			Format(sEmitterName, sizeof(sEmitterName), "shake");
 		}
 		case EMITTER_SMOKESTACK:
 		{
@@ -321,8 +328,6 @@ public int Native_SpawnEmitter(Handle hPlugin, int iNumParams)
 			
 			KS_SetEmitterType(iBase, etEmitter);
 			
-			AcceptEntityInput(KS_GetEmitterAttachment(iBase), "Explode");
-			
 			return iBase;
 		}
 		case EMITTER_FIRE:
@@ -363,6 +368,39 @@ public int Native_SpawnEmitter(Handle hPlugin, int iNumParams)
 			
 			SetVariantFloat(0.0);
 			AcceptEntityInput(KS_GetEmitterAttachment(iBase), KS_IsEmitterActive(iBase) ? "StartFire" : "ExtinguishTemporary");
+			
+			return iBase;
+		}
+		case EMITTER_SHAKE:
+		{
+			iEmitter = CreateEntityByName("env_shake");
+			
+			fAngles[0] = 0.0, fAngles[1] = 0.0, fAngles[2] = 0.0;
+			
+			fFinalOrigin = fOrigin;
+			fFinalOrigin[2] += 8.0;
+			
+			DispatchKeyValue(iEmitter, "amplitude", "4");
+			DispatchKeyValue(iEmitter, "duration", "5");
+			DispatchKeyValue(iEmitter, "frequency", "5");
+			DispatchKeyValue(iEmitter, "radius", "100");
+			
+			DispatchSpawn(iEmitter);
+			
+			TeleportEntity(iEmitter, fFinalOrigin, fAngles, NULL_VECTOR);
+			
+			SetVariantString("!activator");
+			AcceptEntityInput(iEmitter, "SetParent", iBase);
+			
+			KS_SetEmitterAttachment(iBase, iEmitter);
+			
+			KS_SetColor(KS_GetEmitterAttachment(iBase), iColor[0], iColor[1], iColor[2], iColor[3]);
+			KS_SetEntity(KS_GetEmitterAttachment(iBase), true);
+			KS_SetOwner(iClient, KS_GetEmitterAttachment(iBase));
+			
+			SDKHook(iBase, SDKHook_UsePost, Hook_EmitterUse);
+			
+			KS_SetEmitterType(iBase, etEmitter);
 			
 			return iBase;
 		}

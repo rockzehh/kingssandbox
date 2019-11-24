@@ -207,9 +207,9 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_unfreezeit", Command_UnfreezeIt, "King's Sandbox: Unfreezes the prop you are looking at.");
 	
 	CreateConVar("kingssandbox", "1", "Notifies the server that the plugin is running.");
-	CreateConVar("ks_version", SANDBOX_VERSION, "The version of the plugin the server is running.");
 	g_cvCelLimit = CreateConVar("ks_max_player_cels", "20", "Maxiumum number of cel entities a client is allowed.");
 	g_cvPropLimit = CreateConVar("ks_max_player_props", "130", "Maxiumum number of props a player is allowed to spawn.");
+	CreateConVar("ks_version", SANDBOX_VERSION, "The version of the plugin the server is running.");
 	
 	g_cvCelLimit.AddChangeHook(KS_OnConVarChanged);
 	g_cvPropLimit.AddChangeHook(KS_OnConVarChanged);
@@ -1665,7 +1665,7 @@ public int Native_SetSolid(Handle hPlugin, int iNumParams)
 
 public int Native_SpawnDoor(Handle hPlugin, int iNumParams)
 {
-	char sSkin[16];
+	char sAngles[16], sSkin[16];
 	float fAngles[3], fOrigin[3];
 	int iClient = GetNativeCell(1), iColor[4];
 	
@@ -1679,6 +1679,8 @@ public int Native_SpawnDoor(Handle hPlugin, int iNumParams)
 	iColor[2] = GetNativeCell(7);
 	iColor[3] = GetNativeCell(8);
 	
+	Format(sAngles, sizeof(sAngles), "%f %f %f", fAngles[0], fAngles[1], fAngles[2]);
+	
 	int iDoor = CreateEntityByName("prop_door_rotating");
 	
 	if (iDoor == -1)
@@ -1686,6 +1688,7 @@ public int Native_SpawnDoor(Handle hPlugin, int iNumParams)
 	
 	PrecacheModel("models/props_c17/door01_left.mdl");
 	
+	DispatchKeyValue(iDoor, "ajarangles", sAngles);
 	DispatchKeyValue(iDoor, "model", "models/props_c17/door01_left.mdl");
 	DispatchKeyValue(iDoor, "classname", "cel_door");
 	DispatchKeyValue(iDoor, "skin", sSkin);
@@ -1695,14 +1698,14 @@ public int Native_SpawnDoor(Handle hPlugin, int iNumParams)
 	DispatchKeyValue(iDoor, "dmg", "-20");
 	DispatchKeyValue(iDoor, "opendir", "0");
 	DispatchKeyValue(iDoor, "spawnflags", "8192");
-	DispatchKeyValue(iDoor, "OnFullyOpen", "!caller,close,,3,-1");
+	DispatchKeyValue(iDoor, "OnFullyOpen", "!caller,Close,,3,-1");
 	DispatchKeyValue(iDoor, "hardware", "1");
 	
 	DispatchSpawn(iDoor);
 	
-	fOrigin[2] += 52;
+	fOrigin[2] += 54;
 	
-	TeleportEntity(iDoor, fOrigin, fAngles, NULL_VECTOR);
+	TeleportEntity(iDoor, fOrigin, NULL_VECTOR, NULL_VECTOR);
 	
 	KS_AddToCelCount(iClient);
 	

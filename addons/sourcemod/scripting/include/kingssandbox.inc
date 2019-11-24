@@ -31,10 +31,11 @@ enum EmitterType
 	EMITTER_CORE = 0,  /**< Core emitter type. env_citadel_energy_core */
 	EMITTER_EXPLOSION = 1, /**< Explosion emitter type. env_explosion */
 	EMITTER_FIRE = 2,  /**< Fire emitter type. env_fire */
-	EMITTER_SMOKESTACK = 3,  /**< Smokestack emitter type. env_smokestack */
-	EMITTER_SPOTLIGHT = 4,  /**< Spotlight emitter type. point_spotlight */
-	EMITTER_STEAM = 5,  /**< Steam emitter type. env_steam */
-	EMITTER_UNKNOWN = 6, /**< Unknown emitter type. */
+	EMITTER_SHAKE = 3, /**< Shake emitter type. env_shake */
+	EMITTER_SMOKESTACK = 4,  /**< Smokestack emitter type. env_smokestack */
+	EMITTER_SPOTLIGHT = 5,  /**< Spotlight emitter type. point_spotlight */
+	EMITTER_STEAM = 6,  /**< Steam emitter type. env_steam */
+	EMITTER_UNKNOWN = 7, /**< Unknown emitter type. */
 };
 
 #define SANDBOX_VERSION "1.1.0.0" /**< Global version. */
@@ -464,6 +465,10 @@ public void Hook_EmitterUse(int iEntity, int iActivator, int iCaller, UseType ut
 		{
 			SetVariantFloat(0.0);
 			AcceptEntityInput(KS_GetEmitterAttachment(iEntity), KS_IsEmitterActive(iEntity) ? "StartFire" : "ExtinguishTemporary");
+		}
+		case EMITTER_SHAKE:
+		{
+			AcceptEntityInput(KS_GetEmitterAttachment(iEntity), "StartShake");
 		}
 		case EMITTER_SMOKESTACK:
 		{
