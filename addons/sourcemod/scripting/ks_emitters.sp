@@ -121,9 +121,9 @@ public int Native_GetEmitterTypeFromName(Handle hPlugin, int iNumParams)
 	if (StrContains("core", sEmitterName, false) != -1)
 	{
 		return view_as<int>(EMITTER_CORE);
-	} else if (StrContains("explosion", sEmitterName, false) != -1)
+	/*} else if (StrContains("explosion", sEmitterName, false) != -1)
 	{
-		return view_as<int>(EMITTER_EXPLOSION);
+		return view_as<int>(EMITTER_EXPLOSION);*/
 	} else if (StrContains("fire", sEmitterName, false) != -1)
 	{
 		return view_as<int>(EMITTER_FIRE);
@@ -156,10 +156,10 @@ public int Native_GetEmitterTypeName(Handle hPlugin, int iNumParams)
 		{
 			Format(sEmitterName, sizeof(sEmitterName), "core");
 		}
-		case EMITTER_EXPLOSION:
+		/*case EMITTER_EXPLOSION:
 		{
 			Format(sEmitterName, sizeof(sEmitterName), "explosion");
-		}
+		}*/
 		case EMITTER_FIRE:
 		{
 			Format(sEmitterName, sizeof(sEmitterName), "fire");
@@ -297,7 +297,7 @@ public int Native_SpawnEmitter(Handle hPlugin, int iNumParams)
 			
 			return iBase;
 		}
-		case EMITTER_EXPLOSION:
+		/*case EMITTER_EXPLOSION:
 		{
 			iEmitter = CreateEntityByName("env_explosion");
 			
@@ -329,7 +329,7 @@ public int Native_SpawnEmitter(Handle hPlugin, int iNumParams)
 			KS_SetEmitterType(iBase, etEmitter);
 			
 			return iBase;
-		}
+		}*/
 		case EMITTER_FIRE:
 		{
 			iEmitter = CreateEntityByName("env_fire");
