@@ -24,8 +24,6 @@ char g_sSpawnDB[PLATFORM_MAX_PATH];
 ConVar g_cvCelLimit;
 ConVar g_cvPropLimit;
 
-float g_fZero[3] =  { 0.0, 0.0, 0.0 };
-
 Handle g_hOnCelSpawn;
 Handle g_hOnEntityRemove;
 Handle g_hOnPropSpawn;
@@ -36,7 +34,6 @@ int g_iCelLimit;
 int g_iColor[MAXENTS + 1][4];
 int g_iEntityDissolve;
 int g_iHalo;
-int g_iLand;
 int g_iOwner[MAXENTS + 1];
 int g_iPhys;
 int g_iPropCount[MAXPLAYERS + 1];
@@ -65,6 +62,7 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErr
 	CreateNative("KS_CheckSpawnDB", Native_CheckSpawnDB);
 	CreateNative("KS_DissolveEntity", Native_DissolveEntity);
 	CreateNative("KS_GetAuthID", Native_GetAuthID);
+	CreateNative("KS_GetBeamMaterial", Native_GetBeamMaterial);
 	CreateNative("KS_GetClientAimTarget", Native_GetClientAimTarget);
 	CreateNative("KS_GetCelCount", Native_GetCelCount);
 	CreateNative("KS_GetCelLimit", Native_GetCelLimit);
@@ -75,9 +73,11 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErr
 	CreateNative("KS_GetEntityType", Native_GetEntityType);
 	CreateNative("KS_GetEntityTypeFromName", Native_GetEntityTypeFromName);
 	CreateNative("KS_GetEntityTypeName", Native_GetEntityTypeName);
+	CreateNative("KS_GetHaloMaterial", Native_GetHaloMaterial);
 	CreateNative("KS_GetInternetURL", Native_GetInternetURL);
 	CreateNative("KS_GetNoKill", Native_GetNoKill);
 	CreateNative("KS_GetOwner", Native_GetOwner);
+	CreateNative("KS_GetPhysicsMaterial", Native_GetPhysicsMaterial);
 	CreateNative("KS_GetPropCount", Native_GetPropCount);
 	CreateNative("KS_GetPropLimit", Native_GetPropLimit);
 	CreateNative("KS_GetPropName", Native_GetPropName);
@@ -180,7 +180,6 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_alpha", Command_Alpha, "King's Sandbox: Changes the transparency on the prop you are looking at.");
 	RegConsoleCmd("sm_amt", Command_Alpha, "King's Sandbox: Changes the transparency on the prop you are looking at.");
 	RegConsoleCmd("sm_axis", Command_Axis, "King's Sandbox: Creates a marker to the player showing every axis.");
-	//RegConsoleCmd("sm_clearland", Command_ClearLand, "King's Sandbox: Clears your own land.");
 	RegConsoleCmd("sm_color", Command_Color, "King's Sandbox: Colors the prop you are looking at.");
 	RegConsoleCmd("sm_del", Command_Delete, "King's Sandbox: Removes the prop you are looking at.");
 	RegConsoleCmd("sm_delete", Command_Delete, "King's Sandbox: Removes the prop you are looking at.");
@@ -188,7 +187,6 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_freeze", Command_FreezeIt, "King's Sandbox: Freezes the prop you are looking at.");
 	RegConsoleCmd("sm_freezeit", Command_FreezeIt, "King's Sandbox: Freezes the prop you are looking at.");
 	RegConsoleCmd("sm_internet", Command_Internet, "King's Sandbox: Creates a working internet cel.");
-	//RegConsoleCmd("sm_land", Command_Land, "King's Sandbox: Creates a building zone.");
 	RegConsoleCmd("sm_mark", Command_Axis, "King's Sandbox: Creates a marker to the player showing every axis.");
 	RegConsoleCmd("sm_marker", Command_Axis, "King's Sandbox: Creates a marker to the player showing every axis.");
 	RegConsoleCmd("sm_nokill", Command_NoKill, "King's Sandbox: Enables/disables godmode on the player.");
@@ -234,7 +232,8 @@ public void OnClientAuthorized(int iClient, const char[] sAuthID)
 	{
 		if (IsClientInGame(i))
 		{
-			ClientCommand(i, "play npc/metropolice/vo/on1.wav");
+			//ClientCommand(i, "play npc/metropolice/vo/on1.wav");
+			EmitSoundToClient(i, "play npc/metropolice/vo/on1.wav", i, 2, 100, 0, 1.0, 100, -1, NULL_VECTOR, NULL_VECTOR, true, 0.0);
 		}
 	}
 }
@@ -254,6 +253,15 @@ public void OnClientPutInServer(int iClient)
 	}
 	
 	KS_SetCelCount(iClient, 0);
+	KS_SetLandPhase(iClient, 0, 0);
+	KS_SetLandPhase(iClient, 1, 0);
+	KS_SetLandPhase(iClient, 2, 0);
+	KS_SetLandPosition(iClient, 0, g_fZero);
+	KS_SetLandPosition(iClient, 1, g_fZero);
+	KS_SetLandPosition(iClient, 2, g_fZero);
+	KS_SetLandPosition(iClient, 3, g_fZero);
+	KS_SetLandPosition(iClient, 4, g_fZero);
+	KS_SetLandPosition(iClient, 5, g_fZero);
 	KS_SetNoKill(iClient, false);
 	KS_SetPlayer(iClient, true);
 	KS_SetPropCount(iClient, 0);
@@ -262,6 +270,15 @@ public void OnClientPutInServer(int iClient)
 public void OnClientDisconnect(int iClient)
 {
 	KS_SetCelCount(iClient, 0);
+	KS_SetLandPhase(iClient, 0, 0);
+	KS_SetLandPhase(iClient, 1, 0);
+	KS_SetLandPhase(iClient, 2, 0);
+	KS_SetLandPosition(iClient, 0, g_fZero);
+	KS_SetLandPosition(iClient, 1, g_fZero);
+	KS_SetLandPosition(iClient, 2, g_fZero);
+	KS_SetLandPosition(iClient, 3, g_fZero);
+	KS_SetLandPosition(iClient, 4, g_fZero);
+	KS_SetLandPosition(iClient, 5, g_fZero);
 	KS_SetNoKill(iClient, false);
 	KS_SetPlayer(iClient, false);
 	KS_SetPropCount(iClient, 0);
@@ -279,7 +296,8 @@ public void OnClientDisconnect(int iClient)
 	{
 		if (IsClientInGame(i))
 		{
-			ClientCommand(i, "play npc/metropolice/vo/off1.wav");
+			//ClientCommand(i, "play npc/metropolice/vo/off1.wav");
+			EmitSoundToClient(i, "play npc/metropolice/vo/off1.wav", i, 2, 100, 0, 1.0, 100, -1, NULL_VECTOR, NULL_VECTOR, true, 0.0);
 		}
 	}
 }
@@ -289,12 +307,7 @@ public void OnMapStart()
 	g_iBeam = PrecacheModel("materials/sprites/laserbeam.vmt", true);
 	g_iEntityDissolve = CreateEntityByName("env_entity_dissolver");
 	g_iHalo = PrecacheModel("materials/sprites/halo01.vmt", true);
-	g_iLand = PrecacheModel("materials/sprites/spotlight.vmt", false);
 	g_iPhys = PrecacheModel("materials/sprites/physbeam.vmt", true);
-	
-	//g_hInLand = CreateTimer(0.1, Timer_InLand, _, TIMER_REPEAT);
-	//g_hLandDrawing = CreateTimer(0.1, Timer_DrawLand, _, TIMER_REPEAT);
-	//g_hPositions = CreateTimer(0.1, Timer_Positions, _, TIMER_REPEAT);
 	
 	DispatchKeyValue(g_iEntityDissolve, "target", "deleted");
 	DispatchKeyValue(g_iEntityDissolve, "magnitude", "50");
@@ -310,12 +323,7 @@ public void OnMapEnd()
 	g_iBeam = -1;
 	g_iEntityDissolve = -1;
 	g_iHalo = -1;
-	g_iLand = -1;
 	g_iPhys = -1;
-	
-	//CloseHandle(g_hInLand);
-	//CloseHandle(g_hLandDrawing);
-	//CloseHandle(g_hPositions);
 }
 
 public void KS_OnConVarChanged(ConVar cvConVar, const char[] sOldValue, const char[] sNewValue)
@@ -385,9 +393,9 @@ public Action Command_Axis(int iClient, int iArgs)
 	fClientOrigin[2][1] += 50;
 	fClientOrigin[3][2] += 50;
 	
-	TE_SetupBeamPoints(fClientOrigin[0], fClientOrigin[1], g_iBeam, g_iHalo, 0, 15, 60.0, 3.0, 3.0, 1, 0.0, g_iRed, 10); TE_SendToClient(iClient);
-	TE_SetupBeamPoints(fClientOrigin[0], fClientOrigin[2], g_iBeam, g_iHalo, 0, 15, 60.0, 3.0, 3.0, 1, 0.0, g_iGreen, 10); TE_SendToClient(iClient);
-	TE_SetupBeamPoints(fClientOrigin[0], fClientOrigin[3], g_iBeam, g_iHalo, 0, 15, 60.0, 3.0, 3.0, 1, 0.0, g_iBlue, 10); TE_SendToClient(iClient);
+	TE_SetupBeamPoints(fClientOrigin[0], fClientOrigin[1], KS_GetBeamMaterial(), KS_GetHaloMaterial(), 0, 15, 60.0, 3.0, 3.0, 1, 0.0, g_iRed, 10); TE_SendToClient(iClient);
+	TE_SetupBeamPoints(fClientOrigin[0], fClientOrigin[2], KS_GetBeamMaterial(), KS_GetHaloMaterial(), 0, 15, 60.0, 3.0, 3.0, 1, 0.0, g_iGreen, 10); TE_SendToClient(iClient);
+	TE_SetupBeamPoints(fClientOrigin[0], fClientOrigin[3], KS_GetBeamMaterial(), KS_GetHaloMaterial(), 0, 15, 60.0, 3.0, 3.0, 1, 0.0, g_iBlue, 10); TE_SendToClient(iClient);
 	
 	KS_ReplyToCommand(iClient, "Created {red}X{default}, {green}Y{default}, and {blue}Z{default} axis markers.");
 	
@@ -703,7 +711,7 @@ public Action Command_Rotate(int iClient, int iArgs)
 			TeleportEntity(iProp, NULL_VECTOR, fAngles, NULL_VECTOR);
 		}
 		
-		TE_SetupBeamRingPoint(fOrigin, 0.0, 15.0, g_iBeam, g_iHalo, 0, 15, 0.5, 3.0, 0.0, g_iOrange, 10, 0); TE_SendToAll();
+		TE_SetupBeamRingPoint(fOrigin, 0.0, 15.0, KS_GetBeamMaterial(), KS_GetHaloMaterial(), 0, 15, 0.5, 3.0, 0.0, g_iOrange, 10, 0); TE_SendToAll();
 		
 		PrecacheSound("buttons/lever7.wav");
 		
@@ -1055,7 +1063,7 @@ public int Native_ChangeBeam(Handle hPlugin, int iNumParams)
 	
 	KS_GetCrosshairHitOrigin(iClient, fHitOrigin);
 	
-	TE_SetupBeamPoints(fClientOrigin, fHitOrigin, g_iPhys, g_iHalo, 0, 15, 0.25, 5.0, 5.0, 1, 0.0, g_iWhite, 10); TE_SendToAll();
+	TE_SetupBeamPoints(fClientOrigin, fHitOrigin, KS_GetPhysicsMaterial(), KS_GetHaloMaterial(), 0, 15, 0.25, 5.0, 5.0, 1, 0.0, g_iWhite, 10); TE_SendToAll();
 	TE_SetupSparks(fHitOrigin, NULL_VECTOR, 2, 5); TE_SendToAll();
 	
 	Format(sSound, sizeof(sSound), "weapons/airboat/airboat_gun_lastshot%i.wav", GetRandomInt(1, 2));
@@ -1169,6 +1177,11 @@ public int Native_GetAuthID(Handle hPlugin, int iNumParams)
 	int iClient = GetNativeCell(1), iMaxLength = GetNativeCell(3);
 	
 	SetNativeString(2, g_sAuthID[iClient], iMaxLength);
+}
+
+public int Native_GetBeamMaterial(Handle hPlugin, int iNumParams)
+{
+	return g_iBeam;
 }
 
 public int Native_GetClientAimTarget(Handle hPlugin, int iNumParams)
@@ -1375,6 +1388,11 @@ public int Native_GetEntityTypeName(Handle hPlugin, int iNumParams)
 	SetNativeString(2, sEntityType, iMaxLength);
 }
 
+public int Native_GetHaloMaterial(Handle hPlugin, int iNumParams)
+{
+	return g_iHalo;
+}
+
 public int Native_GetInternetURL(Handle hPlugin, int iNumParams)
 {
 	int iEntity = GetNativeCell(1), iMaxLength = GetNativeCell(3);
@@ -1394,6 +1412,11 @@ public int Native_GetOwner(Handle hPlugin, int iNumParams)
 	int iEntity = GetNativeCell(1);
 	
 	return GetClientFromSerial(g_iOwner[iEntity]);
+}
+
+public int Native_GetPhysicsMaterial(Handle hPlugin, int iNumParams)
+{
+	return g_iPhys;
 }
 
 public int Native_GetPropCount(Handle hPlugin, int iNumParams)
@@ -1507,9 +1530,9 @@ public int Native_RemovalBeam(Handle hPlugin, int iNumParams)
 	
 	KS_GetEntityOrigin(iEntity, fEntityOrigin);
 	
-	TE_SetupBeamPoints(fClientOrigin, fEntityOrigin, g_iBeam, g_iHalo, 0, 15, 0.25, 5.0, 5.0, 1, 0.0, g_iGray, 10); TE_SendToAll();
+	TE_SetupBeamPoints(fClientOrigin, fEntityOrigin, KS_GetBeamMaterial(), KS_GetHaloMaterial(), 0, 15, 0.25, 5.0, 5.0, 1, 0.0, g_iGray, 10); TE_SendToAll();
 	
-	TE_SetupBeamRingPoint(fEntityOrigin, 0.0, 15.0, g_iBeam, g_iHalo, 0, 15, 0.5, 5.0, 0.0, g_iGray, 10, 0); TE_SendToAll();
+	TE_SetupBeamRingPoint(fEntityOrigin, 0.0, 15.0, KS_GetBeamMaterial(), KS_GetHaloMaterial(), 0, 15, 0.5, 5.0, 0.0, g_iGray, 10, 0); TE_SendToAll();
 	
 	Format(sSound, sizeof(sSound), "ambient/levels/citadel/weapon_disintegrate%i.wav", GetRandomInt(1, 4));
 	

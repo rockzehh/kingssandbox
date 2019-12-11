@@ -121,7 +121,7 @@ public int Native_GetEmitterTypeFromName(Handle hPlugin, int iNumParams)
 	if (StrContains("core", sEmitterName, false) != -1)
 	{
 		return view_as<int>(EMITTER_CORE);
-	/*} else if (StrContains("explosion", sEmitterName, false) != -1)
+		/*} else if (StrContains("explosion", sEmitterName, false) != -1)
 	{
 		return view_as<int>(EMITTER_EXPLOSION);*/
 	} else if (StrContains("fire", sEmitterName, false) != -1)
