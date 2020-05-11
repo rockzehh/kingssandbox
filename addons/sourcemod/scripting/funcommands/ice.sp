@@ -1,5 +1,4 @@
-//Modified by King Nothing for King's Sandbox.
-
+//Edited for King's Sandbox compatibility.
 /**
  * vim: set ts=4 :
  * =============================================================================

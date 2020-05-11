@@ -63,6 +63,7 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErr
 	CreateNative("KS_DissolveEntity", Native_DissolveEntity);
 	CreateNative("KS_GetAuthID", Native_GetAuthID);
 	CreateNative("KS_GetBeamMaterial", Native_GetBeamMaterial);
+	
 	CreateNative("KS_GetClientAimTarget", Native_GetClientAimTarget);
 	CreateNative("KS_GetCelCount", Native_GetCelCount);
 	CreateNative("KS_GetCelLimit", Native_GetCelLimit);
@@ -253,15 +254,6 @@ public void OnClientPutInServer(int iClient)
 	}
 	
 	KS_SetCelCount(iClient, 0);
-	KS_SetLandPhase(iClient, 0, 0);
-	KS_SetLandPhase(iClient, 1, 0);
-	KS_SetLandPhase(iClient, 2, 0);
-	KS_SetLandPosition(iClient, 0, g_fZero);
-	KS_SetLandPosition(iClient, 1, g_fZero);
-	KS_SetLandPosition(iClient, 2, g_fZero);
-	KS_SetLandPosition(iClient, 3, g_fZero);
-	KS_SetLandPosition(iClient, 4, g_fZero);
-	KS_SetLandPosition(iClient, 5, g_fZero);
 	KS_SetNoKill(iClient, false);
 	KS_SetPlayer(iClient, true);
 	KS_SetPropCount(iClient, 0);
@@ -270,15 +262,6 @@ public void OnClientPutInServer(int iClient)
 public void OnClientDisconnect(int iClient)
 {
 	KS_SetCelCount(iClient, 0);
-	KS_SetLandPhase(iClient, 0, 0);
-	KS_SetLandPhase(iClient, 1, 0);
-	KS_SetLandPhase(iClient, 2, 0);
-	KS_SetLandPosition(iClient, 0, g_fZero);
-	KS_SetLandPosition(iClient, 1, g_fZero);
-	KS_SetLandPosition(iClient, 2, g_fZero);
-	KS_SetLandPosition(iClient, 3, g_fZero);
-	KS_SetLandPosition(iClient, 4, g_fZero);
-	KS_SetLandPosition(iClient, 5, g_fZero);
 	KS_SetNoKill(iClient, false);
 	KS_SetPlayer(iClient, false);
 	KS_SetPropCount(iClient, 0);

@@ -41,6 +41,8 @@ enum EmitterType
 #define SANDBOX_VERSION "1.1.0.0" /**< Global version. */
 #define MAXENTS 2048 /**< Max number of entities Source can handle. */
 
+float g_fZero[3] = { 0.0, 0.0, 0.0 };
+
 //========== kingssandbox.smx ==========
 /**
  * Adds one to the client's cel count.
@@ -136,6 +138,8 @@ native void KS_DissolveEntity(int iEntity);
  */
 native char KS_GetAuthID(int iClient, char[] sAuthID, int iMaxLength);
 
+native int KS_GetBeamMaterial();
+
 /**
  * Gets the entity index that the client is looking at and checks if it belongs to the plugin.
  *
@@ -214,6 +218,8 @@ native EntityType KS_GetEntityTypeFromName(const char[] sEntityType);
  */
 native char KS_GetEntityTypeName(EntityType etEntityType, char[] sEntityType, int iMaxLength);
 
+native int KS_GetHaloMaterial();
+
 /**
  * Gets the internet cel url.
  *
@@ -238,6 +244,8 @@ native int KS_GetNoKill(int iClient);
  * @return					Returns the owner's client index.
  */
 native int KS_GetOwner(int iEntity);
+
+native int KS_GetPhysicsMaterial();
 
 /**
  * Gets the client's prop count.
