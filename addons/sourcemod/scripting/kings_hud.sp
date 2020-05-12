@@ -39,7 +39,7 @@ public void OnPluginStart()
 	
 	g_bHudEnable = view_as<bool>(g_cvHudEnable.IntValue);
 	
-	AutoExecConfig(true, "ks-hud", "sourcemod");
+	AutoExecConfig(true, "kings-hud", "sourcemod");
 }
 
 public void OnMapStart()

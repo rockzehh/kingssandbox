@@ -133,9 +133,9 @@ public int Native_GetEmitterTypeFromName(Handle hPlugin, int iNumParams)
 	} else if (StrContains("smokestack", sEmitterName, false) != -1)
 	{
 		return view_as<int>(EMITTER_SMOKESTACK);
-	} else if (StrContains("spotlight", sEmitterName, false) != -1)
+	/*} else if (StrContains("spotlight", sEmitterName, false) != -1)
 	{
-		return view_as<int>(EMITTER_SPOTLIGHT);
+		return view_as<int>(EMITTER_SPOTLIGHT);*/
 	} else if (StrContains("steam", sEmitterName, false) != -1)
 	{
 		return view_as<int>(EMITTER_STEAM);
@@ -172,10 +172,10 @@ public int Native_GetEmitterTypeName(Handle hPlugin, int iNumParams)
 		{
 			Format(sEmitterName, sizeof(sEmitterName), "smokestack");
 		}
-		case EMITTER_SPOTLIGHT:
+		/*case EMITTER_SPOTLIGHT:
 		{
 			Format(sEmitterName, sizeof(sEmitterName), "spotlight");
-		}
+		}*/
 		case EMITTER_STEAM:
 		{
 			Format(sEmitterName, sizeof(sEmitterName), "steam");
@@ -446,7 +446,7 @@ public int Native_SpawnEmitter(Handle hPlugin, int iNumParams)
 			
 			return iBase;
 		}
-		case EMITTER_SPOTLIGHT:
+		/*case EMITTER_SPOTLIGHT:
 		{
 			iEmitter = CreateEntityByName("point_spotlight");
 			
@@ -483,7 +483,7 @@ public int Native_SpawnEmitter(Handle hPlugin, int iNumParams)
 			AcceptEntityInput(KS_GetEmitterAttachment(iBase), KS_IsEmitterActive(iBase) ? "LightOn" : "LightOff");
 			
 			return iBase;
-		}
+		}*/
 		case EMITTER_STEAM:
 		{
 			iEmitter = CreateEntityByName("env_steam");

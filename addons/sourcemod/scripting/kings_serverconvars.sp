@@ -33,11 +33,11 @@ public Plugin myinfo =
 
 public void OnPluginStart()
 {
-	AutoExecConfig(true, "ks-server-config", "sourcemod");
+	AutoExecConfig(true, "kings-server-convars", "sourcemod");
 	
 	g_cvDownloadURL = CreateConVar("ks_server_downloadurl", "", "The download url for content for the server.");
-	g_cvGravity = CreateConVar("ks_server_gravity", "300", "The gravity for the server.");
-	g_cvHostname = CreateConVar("ks_server_hostname", "King's Sandbox - Build/RP", "The custom hostname for the server.");
+	g_cvGravity = CreateConVar("ks_server_gravity", "450", "The gravity for the server.");
+	g_cvHostname = CreateConVar("ks_server_hostname", "King's Sandbox", "The custom hostname for the server.");
 	g_cvTimelimit = CreateConVar("ks_server_timelimit", "60", "The timelimit for the server.");
 	
 	g_cvDownloadURL.AddChangeHook(KSConfig_OnConVarChanged);
@@ -66,21 +66,27 @@ public void KSConfig_OnConVarChanged(ConVar cvConVar, const char[] sOldValue, co
 	{
 		g_cvDownloadURL.GetString(g_sDownloadURL, sizeof(g_sDownloadURL));
 		PrintToServer("King's Sandbox: Download URL updated to %s.", g_sDownloadURL);
+		
+		KS_ReloadServerConVars();
 	} else if (cvConVar == g_cvGravity)
 	{
 		g_iGravity = g_cvGravity.IntValue;
 		PrintToServer("King's Sandbox: Gravity updated to %i.", g_iGravity);
+		
+		KS_ReloadServerConVars();
 	} else if (cvConVar == g_cvHostname)
 	{
 		g_cvHostname.GetString(g_sHostname, sizeof(g_sHostname));
 		PrintToServer("King's Sandbox: Hostname updated to %s.", g_sHostname);
+		
+		KS_ReloadServerConVars();
 	} else if (cvConVar == g_cvTimelimit)
 	{
 		g_iTimelimit = g_cvTimelimit.IntValue;
 		PrintToServer("King's Sandbox: Timelimit updated to %i.", g_iTimelimit);
+		
+		KS_ReloadServerConVars();
 	}
-	
-	KS_ReloadServerConVars();
 }
 
 //Commands:

@@ -1,4 +1,4 @@
- //King's Sandbox by King Nothing (RockZehh).
+ //King's Sandbox by King Nothing.
 
 #pragma semicolon 1
 
@@ -63,7 +63,6 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErr
 	CreateNative("KS_DissolveEntity", Native_DissolveEntity);
 	CreateNative("KS_GetAuthID", Native_GetAuthID);
 	CreateNative("KS_GetBeamMaterial", Native_GetBeamMaterial);
-	
 	CreateNative("KS_GetClientAimTarget", Native_GetClientAimTarget);
 	CreateNative("KS_GetCelCount", Native_GetCelCount);
 	CreateNative("KS_GetCelLimit", Native_GetCelLimit);
@@ -216,7 +215,7 @@ public void OnPluginStart()
 	KS_SetCelLimit(g_cvCelLimit.IntValue);
 	KS_SetPropLimit(g_cvPropLimit.IntValue);
 	
-	AutoExecConfig(true, "ks-main", "sourcemod");
+	AutoExecConfig(true, "kings-main", "sourcemod");
 }
 
 public void OnClientAuthorized(int iClient, const char[] sAuthID)

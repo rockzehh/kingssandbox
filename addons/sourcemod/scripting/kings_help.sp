@@ -64,7 +64,7 @@ public void OnPluginStart()
 	RegServerCmd("ks_exportcommandlist", Command_ExportCommandList, "King's Sandbox-Server: Exports the command list into a text or html file in 'data/kingssandbox/exports'.");
 	RegServerCmd("ks_exportproplist", Command_ExportPropList, "King's Sandbox-Server: Exports the prop list into a text or html file in 'data/kingssandbox/exports'.");
 	
-	AutoExecConfig(true, "ks-help", "sourcemod");
+	AutoExecConfig(true, "kings-help", "sourcemod");
 }
 
 public void KSHelp_OnConVarChanged(ConVar cvConVar, const char[] sOldValue, const char[] sNewValue)

@@ -126,18 +126,14 @@ public Action Command_ReloadSandbox(int iClient, int iArgs)
 		
 		GetPluginFilename(hCurrentPlugin, sFilename, sizeof(sFilename));
 		
-		if (StrContains(sFilename, "kingssandbox") != -1)
+		if (StrContains(sFilename, "kings_") != -1 || StrContains(sFilename, "kingssandbox") != -1)
 		{
-			ServerCommand("sm plugins reload %s", sFilename);
-		} else if (StrContains(sFilename, "ks_emitters") != -1)
-		{
-			ServerCommand("sm plugins reload %s", sFilename);
-		} else if (StrContains(sFilename, "ks_help") != -1)
-		{
-			ServerCommand("sm plugins reload %s", sFilename);
-		} else if (StrContains(sFilename, "ks_hud") != -1)
-		{
-			ServerCommand("sm plugins reload %s", sFilename);
+			if (StrContains(sFilename, "kings_restore") != -1)
+			{
+				//Don't reload ks_restore!
+			}else{
+				ServerCommand("sm plugins reload %s", sFilename);
+			}
 		}
 	}
 	
