@@ -16,6 +16,7 @@ ConVar g_cvPropListURL;
 
 public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErr_max)
 {
+	CreateNative("KS_CheckInputURL", Native_CheckInputURL);
 	CreateNative("KS_ExportColorList", Native_ExportColorList);
 	CreateNative("KS_ExportCommandList", Native_ExportCommandList);
 	CreateNative("KS_ExportPropList", Native_ExportPropList);
@@ -92,12 +93,7 @@ public Action Command_ColorList(int iClient, int iArgs)
 {
 	char sURL[PLATFORM_MAX_PATH];
 	
-	strcopy(sURL, sizeof(sURL), g_sColorListURL);
-	
-	if (StrContains(sURL, "http://", false) != -1 || StrContains(sURL, "https://", false) != -1)
-	{  } else {
-		Format(sURL, sizeof(sURL), "http://%s", sURL);
-	}
+	KS_CheckInputURL(g_sColorListURL, sURL, sizeof(sURL));
 	
 	KS_OpenMOTDOnClient(iClient, true, "King's Web Viewer", sURL, MOTDPANEL_TYPE_URL);
 	
@@ -110,12 +106,7 @@ public Action Command_CommandList(int iClient, int iArgs)
 {
 	char sURL[PLATFORM_MAX_PATH];
 	
-	strcopy(sURL, sizeof(sURL), g_sCommandListURL);
-	
-	if (StrContains(sURL, "http://", false) != -1 || StrContains(sURL, "https://", false) != -1)
-	{  } else {
-		Format(sURL, sizeof(sURL), "http://%s", sURL);
-	}
+	KS_CheckInputURL(g_sCommandListURL, sURL, sizeof(sURL));
 	
 	KS_OpenMOTDOnClient(iClient, true, "King's Web Viewer", sURL, MOTDPANEL_TYPE_URL);
 	
@@ -128,12 +119,7 @@ public Action Command_EmitterList(int iClient, int iArgs)
 {
 	char sURL[PLATFORM_MAX_PATH];
 	
-	strcopy(sURL, sizeof(sURL), g_sEmitterListURL);
-	
-	if (StrContains(sURL, "http://", false) != -1 || StrContains(sURL, "https://", false) != -1)
-	{  } else {
-		Format(sURL, sizeof(sURL), "http://%s", sURL);
-	}
+	KS_CheckInputURL(g_sEmitterListURL, sURL, sizeof(sURL));
 	
 	KS_OpenMOTDOnClient(iClient, true, "King's Web Viewer", sURL, MOTDPANEL_TYPE_URL);
 	
@@ -179,12 +165,7 @@ public Action Command_PropList(int iClient, int iArgs)
 {
 	char sURL[PLATFORM_MAX_PATH];
 	
-	strcopy(sURL, sizeof(sURL), g_sPropListURL);
-	
-	if (StrContains(sURL, "http://", false) != -1 || StrContains(sURL, "https://", false) != -1)
-	{  } else {
-		Format(sURL, sizeof(sURL), "http://%s", sURL);
-	}
+	KS_CheckInputURL(g_sPropListURL, sURL, sizeof(sURL));
 	
 	KS_OpenMOTDOnClient(iClient, true, "King's Web Viewer", sURL, MOTDPANEL_TYPE_URL);
 	
@@ -194,6 +175,23 @@ public Action Command_PropList(int iClient, int iArgs)
 }
 
 //Plugin Natives:
+public int Native_CheckInputURL(Handle hPlugin, int iNumParams)
+{
+	char sInput[PLATFORM_MAX_PATH], sOutput[PLATFORM_MAX_PATH];
+	int iMaxLength = GetNativeCell(3);
+	
+	GetNativeString(1, sInput, sizeof(sInput));
+	
+	if (StrContains(sInput, "http://", false) != -1 || StrContains(sInput, "https://", false) != -1)
+	{
+		Format(sOutput, iMaxLength, sInput);
+	} else {
+		Format(sOutput, iMaxLength, "http://%s", sInput);
+	}
+	
+	SetNativeString(2, sOutput, iMaxLength);
+}
+
 public int Native_ExportColorList(Handle hPlugin, int iNumParams)
 {
 	bool bHTML = view_as<bool>(GetNativeCell(1));

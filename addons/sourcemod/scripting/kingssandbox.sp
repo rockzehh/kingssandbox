@@ -774,11 +774,6 @@ public Action Command_SetURL(int iClient, int iArgs)
 	{
 		if (KS_CheckEntityType(iProp, "internet"))
 		{
-			if (StrContains(sURL, "http://", false) != -1 || StrContains(sURL, "https://", false) != -1)
-			{  } else {
-				Format(sURL, sizeof(sURL), "http://%s", sURL);
-			}
-			
 			KS_SetInternetURL(iProp, sURL);
 			
 			KS_ChangeBeam(iClient, iProp);
@@ -1604,7 +1599,7 @@ public int Native_SetInternetURL(Handle hPlugin, int iNumParams)
 	
 	GetNativeString(2, sURL, sizeof(sURL));
 	
-	Format(g_sInternetURL[iEntity], sizeof(g_sInternetURL[]), sURL);
+	KS_CheckInputURL(sURL, g_sInternetURL[iEntity], sizeof(g_sInternetURL[]));
 }
 
 public int Native_SetNoKill(Handle hPlugin, int iNumParams)

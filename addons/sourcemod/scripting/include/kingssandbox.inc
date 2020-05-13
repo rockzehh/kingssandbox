@@ -417,6 +417,8 @@ native void KS_SetEmitterType(int iEmitter, EmitterType etEmitterType);
 native int KS_SpawnEmitter(const int iClient, const float fOrigin[3], const EmitterType etEmitter, bool bActivate, const int iR, const int iG, const int iB, const int iA);
 
 //========== ks_help.smx ==========
+native char KS_CheckInputURL(const char[] sInput, char[] sOutput, int iMaxLength);
+
 /**
  * Exports the color list to a file.
  *
