@@ -4,7 +4,7 @@
 
 Latest release is *1.0.0.0*, current working version is *1.1.0.0*.
 
-Built against SourceMod *1.10.0-git6488* and Metamod: Source *1.10.7-git971*.
+Built against SourceMod *1.10.0-git6497* and Metamod: Source *1.10.7-git971*.
 
 ## Installation
 
