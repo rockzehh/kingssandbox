@@ -7,6 +7,8 @@
 #include <sdkhooks>
 #include <sdktools>
 #include <sourcemod>
+#undef REQUIRE_PLUGIN
+#include <updater>
 
 enum EntityCatagory
 {
@@ -38,8 +40,9 @@ enum EmitterType
 	EMITTER_UNKNOWN = 7, /**< Unknown emitter type. */
 };
 
-#define SANDBOX_VERSION "1.1.0.0" /**< Global version. */
 #define MAXENTS 2048 /**< Max number of entities Source can handle. */
+#define SANDBOX_VERSION "1.1.0.0" /**< Global version. */
+#define UPDATE_URL "https://raw.githubusercontent.com/rockzehh/kingssandbox/master/addons/sourcemod/updater.txt" /**< The url Updater uses to update. */
 
 float g_fZero[3] = { 0.0, 0.0, 0.0 };
 

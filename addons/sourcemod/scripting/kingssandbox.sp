@@ -126,8 +126,18 @@ public Plugin myinfo =
 	url = "https://github.com/rockzehh/kingssandbox"
 };
 
+public void OnLibraryAdded(const char[] sName)
+{
+	if (StrEqual(sName, "updater"))
+	{
+		Updater_AddPlugin(UPDATE_URL);
+	}
+}
+
 public void OnPluginStart()
 {
+	LoadTranslations("kingssandbox.phrases");
+	
 	char sPath[PLATFORM_MAX_PATH];
 	
 	if (g_bLate)
@@ -141,6 +151,11 @@ public void OnPluginStart()
 				OnClientPutInServer(i);
 			}
 		}
+	}
+
+	if (LibraryExists("updater"))
+	{
+		Updater_AddPlugin(UPDATE_URL);
 	}
 	
 	AddCommandListener(Handle_Chat, "say");
@@ -159,12 +174,12 @@ public void OnPluginStart()
 	BuildPath(Path_SM, g_sColorDB, sizeof(g_sColorDB), "data/kingssandbox/colors.txt");
 	if (!FileExists(g_sColorDB))
 	{
-		ThrowError("King's Sandbox: Cannot find '%s'. Plugin cannot run!", g_sColorDB);
+		ThrowError("King's Sandbox: %T", "File Not Found", g_sColorDB);
 	}
 	BuildPath(Path_SM, g_sSpawnDB, sizeof(g_sSpawnDB), "data/kingssandbox/spawns.txt");
 	if (!FileExists(g_sSpawnDB))
 	{
-		ThrowError("King's Sandbox: Cannot find '%s'. Plugin cannot run!", g_sSpawnDB);
+		ThrowError("King's Sandbox: %T", "File Not Found", g_sSpawnDB);
 	}
 	
 	g_hOnCelSpawn = CreateGlobalForward("KS_OnCelSpawn", ET_Hook, Param_Cell, Param_Cell, Param_Cell);
@@ -220,14 +235,15 @@ public void OnPluginStart()
 
 public void OnClientAuthorized(int iClient, const char[] sAuthID)
 {
-	char sCountry[45], sIP[64];
+	char sClient[128], sCountry[45], sIP[64];
 	
 	GetClientIP(iClient, sIP, sizeof(sIP), true);
+	GetClientName(iClient, sClient, sizeof(sClient));
 	GeoipCountry(sIP, sCountry, sizeof(sCountry));
 	
 	KS_SetAuthID(iClient);
 	
-	CPrintToChatAll("{green}[+]{default} Player {green}%N{default} connecting from {green}%s{default}", iClient, sCountry);
+	CPrintToChatAll("{green}[+]{default} %T", "Connecting", sClient, sCountry);
 	for (int i = 1; i < MaxClients; i++)
 	{
 		if (IsClientInGame(i))
@@ -260,6 +276,10 @@ public void OnClientPutInServer(int iClient)
 
 public void OnClientDisconnect(int iClient)
 {
+	char sClient[128];
+	
+	GetClientName(iClient, sClient, sizeof(sClient));
+
 	KS_SetCelCount(iClient, 0);
 	KS_SetNoKill(iClient, false);
 	KS_SetPlayer(iClient, false);
@@ -273,7 +293,7 @@ public void OnClientDisconnect(int iClient)
 		}
 	}
 	
-	CPrintToChatAll("{red}[-]{default} Player {green}%N{default} disconnected", iClient);
+	CPrintToChatAll("{red}[-]{default} %T", "Disconnecting", sClient);
 	for (int i = 1; i < MaxClients; i++)
 	{
 		if (IsClientInGame(i))

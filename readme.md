@@ -6,6 +6,9 @@ Latest release is *1.0.0.0*, current working version is *1.1.0.0*.
 
 Built against SourceMod *1.10.0-git6497* and Metamod: Source *1.10.7-git971*.
 
+This plugin uses [Updater](https://forums.alliedmods.net/showthread.php?t=169095) to update its files, and is required.
+This plugin uses [More Colors](https://forums.alliedmods.net/showthread.php?t=185016) for the text color. It is required if you want to recompile the plugin.
+
 ## Installation
 
 Extract the zip file into your server directory with [SourceMod](https://www.sourcemod.net/) and [Metamod: Source](https://www.sourcemm.net/) installed.
