@@ -4,6 +4,12 @@
 
 #include <kingssandbox>
 #include <geoip>
+#include <morecolors>
+#include <sdkhooks>
+#include <sdktools>
+#include <sourcemod>
+#undef REQUIRE_PLUGIN
+#include <updater>
 
 #pragma newdecls required
 
@@ -16,12 +22,15 @@ bool g_bSolid[MAXENTS + 1];
 
 char g_sAuthID[MAXPLAYERS + 1][32];
 char g_sColorDB[PLATFORM_MAX_PATH];
+char g_sDefaultInternetURL[PLATFORM_MAX_PATH];
 char g_sInternetURL[MAXENTS + 1][PLATFORM_MAX_PATH];
 char g_sMap[PLATFORM_MAX_PATH];
 char g_sPropName[MAXENTS + 1][64];
 char g_sSpawnDB[PLATFORM_MAX_PATH];
 
 ConVar g_cvCelLimit;
+ConVar g_cvDefaultInternetURL;
+ConVar g_cvLightLimit;
 ConVar g_cvPropLimit;
 
 Handle g_hOnCelSpawn;
@@ -34,6 +43,8 @@ int g_iCelLimit;
 int g_iColor[MAXENTS + 1][4];
 int g_iEntityDissolve;
 int g_iHalo;
+int g_iLightCount;
+int g_iLightLimit;
 int g_iOwner[MAXENTS + 1];
 int g_iPhys;
 int g_iPropCount[MAXPLAYERS + 1];
@@ -51,12 +62,15 @@ int g_iYellow[4] =  { 255, 255, 0, 175 };
 public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErr_max)
 {
 	CreateNative("KS_AddToCelCount", Native_AddToCelCount);
+	//CreateNative("KS_AddToLightCount", Native_AddToCelCount);
 	CreateNative("KS_AddToPropCount", Native_AddToPropCount);
 	CreateNative("KS_ChangeBeam", Native_ChangeBeam);
+	CreateNative("KS_ChangePositionRelativeToOrigin", Native_ChangePositionRelativeToOrigin);
 	CreateNative("KS_CheckCelCount", Native_CheckCelCount);
 	CreateNative("KS_CheckColorDB", Native_CheckColorDB);
 	CreateNative("KS_CheckEntityCatagory", Native_CheckEntityCatagory);
 	CreateNative("KS_CheckEntityType", Native_CheckEntityType);
+	//CreateNative("KS_CheckLightCount", Native_CheckLightCount);
 	CreateNative("KS_CheckOwner", Native_CheckOwner);
 	CreateNative("KS_CheckPropCount", Native_CheckPropCount);
 	CreateNative("KS_CheckSpawnDB", Native_CheckSpawnDB);
@@ -92,6 +106,7 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErr
 	CreateNative("KS_PrintToChatAll", Native_PrintToChatAll);
 	CreateNative("KS_RemovalBeam", Native_RemovalBeam);
 	CreateNative("KS_ReplyToCommand", Native_ReplyToCommand);
+	//CreateNative("KS_ReplyToCommandTranslated", Native_ReplyToCommandTranslated);
 	CreateNative("KS_SetAuthID", Native_SetAuthID);
 	CreateNative("KS_SetCelCount", Native_SetCelCount);
 	CreateNative("KS_SetCelLimit", Native_SetCelLimit);
@@ -108,8 +123,10 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErr
 	CreateNative("KS_SetSolid", Native_SetSolid);
 	CreateNative("KS_SpawnDoor", Native_SpawnDoor);
 	CreateNative("KS_SpawnInternet", Native_SpawnInternet);
+	//CreateNative("KS_SpawnLight", Native_SpawnLight);
 	CreateNative("KS_SpawnProp", Native_SpawnProp);
 	CreateNative("KS_SubFromCelCount", Native_SubFromCelCount);
+	//CreateNative("KS_SubFromLightCount", Native_SubFromLightCount);
 	CreateNative("KS_SubFromPropCount", Native_SubFromPropCount);
 	
 	g_bLate = bLate;
@@ -174,12 +191,12 @@ public void OnPluginStart()
 	BuildPath(Path_SM, g_sColorDB, sizeof(g_sColorDB), "data/kingssandbox/colors.txt");
 	if (!FileExists(g_sColorDB))
 	{
-		ThrowError("King's Sandbox: %T", "File Not Found", g_sColorDB);
+		ThrowError("King's Sandbox: %t", "FileNotFound", g_sColorDB);
 	}
 	BuildPath(Path_SM, g_sSpawnDB, sizeof(g_sSpawnDB), "data/kingssandbox/spawns.txt");
 	if (!FileExists(g_sSpawnDB))
 	{
-		ThrowError("King's Sandbox: %T", "File Not Found", g_sSpawnDB);
+		ThrowError("King's Sandbox: %t", "FileNotFound", g_sSpawnDB);
 	}
 	
 	g_hOnCelSpawn = CreateGlobalForward("KS_OnCelSpawn", ET_Hook, Param_Cell, Param_Cell, Param_Cell);
@@ -221,13 +238,16 @@ public void OnPluginStart()
 	
 	CreateConVar("kingssandbox", "1", "Notifies the server that the plugin is running.");
 	g_cvCelLimit = CreateConVar("ks_max_player_cels", "20", "Maxiumum number of cel entities a client is allowed.");
+	g_cvDefaultInternetURL = CreateConVar("ks_default_internet_url", "https://github.com/rockzehh/kingssandbox", "Default internet cel URL.");
 	g_cvPropLimit = CreateConVar("ks_max_player_props", "130", "Maxiumum number of props a player is allowed to spawn.");
 	CreateConVar("ks_version", SANDBOX_VERSION, "The version of the plugin the server is running.");
 	
 	g_cvCelLimit.AddChangeHook(KS_OnConVarChanged);
+	g_cvDefaultInternetURL.AddChangeHook(KS_OnConVarChanged);
 	g_cvPropLimit.AddChangeHook(KS_OnConVarChanged);
 	
 	KS_SetCelLimit(g_cvCelLimit.IntValue);
+	g_cvDefaultInternetURL.GetString(g_sDefaultInternetURL, sizeof(g_sDefaultInternetURL));
 	KS_SetPropLimit(g_cvPropLimit.IntValue);
 	
 	AutoExecConfig(true, "kings-main", "sourcemod");
@@ -243,7 +263,7 @@ public void OnClientAuthorized(int iClient, const char[] sAuthID)
 	
 	KS_SetAuthID(iClient);
 	
-	CPrintToChatAll("{green}[+]{default} %T", "Connecting", sClient, sCountry);
+	CPrintToChatAll("{green}[+]{default} %t", "Connecting", sClient, sCountry);
 	for (int i = 1; i < MaxClients; i++)
 	{
 		if (IsClientInGame(i))
@@ -293,7 +313,7 @@ public void OnClientDisconnect(int iClient)
 		}
 	}
 	
-	CPrintToChatAll("{red}[-]{default} %T", "Disconnecting", sClient);
+	CPrintToChatAll("{red}[-]{default} %t", "Disconnecting", sClient);
 	for (int i = 1; i < MaxClients; i++)
 	{
 		if (IsClientInGame(i))
@@ -334,6 +354,10 @@ public void KS_OnConVarChanged(ConVar cvConVar, const char[] sOldValue, const ch
 	{
 		KS_SetCelLimit(StringToInt(sNewValue));
 		PrintToServer("King's Sandbox: Cel limit updated to %i.", StringToInt(sNewValue));
+	} else if (cvConVar == g_cvDefaultInternetURL)
+	{
+		g_cvDefaultInternetURL.GetString(g_sDefaultInternetURL, sizeof(g_sDefaultInternetURL));
+		PrintToServer("King's Sandbox: Default internet cel url updated to %s.", sNewValue);
 	} else if (cvConVar == g_cvPropLimit) {
 		KS_SetPropLimit(StringToInt(sNewValue));
 		PrintToServer("King's Sandbox: Prop limit updated to %i.", StringToInt(sNewValue));
@@ -347,7 +371,7 @@ public Action Command_Alpha(int iClient, int iArgs)
 	
 	if (iArgs < 1)
 	{
-		KS_ReplyToCommand(iClient, "Usage: {green}[tag]alpha{default} <transparency value>");
+		KS_ReplyToCommand(iClient, "%t", "CMD_Alpha");
 		return Plugin_Handled;
 	}
 	
@@ -373,7 +397,7 @@ public Action Command_Alpha(int iClient, int iArgs)
 		
 		KS_ChangeBeam(iClient, iProp);
 		
-		KS_ReplyToCommand(iClient, "Set transparency on %s to {green}%i{default}.", sEntityType, iAlpha);
+		KS_ReplyToCommand(iClient, "%t", "SetTransparency", sEntityType, iAlpha);
 	} else {
 		KS_NotYours(iClient, iProp);
 		return Plugin_Handled;
@@ -399,7 +423,7 @@ public Action Command_Axis(int iClient, int iArgs)
 	TE_SetupBeamPoints(fClientOrigin[0], fClientOrigin[2], KS_GetBeamMaterial(), KS_GetHaloMaterial(), 0, 15, 60.0, 3.0, 3.0, 1, 0.0, g_iGreen, 10); TE_SendToClient(iClient);
 	TE_SetupBeamPoints(fClientOrigin[0], fClientOrigin[3], KS_GetBeamMaterial(), KS_GetHaloMaterial(), 0, 15, 60.0, 3.0, 3.0, 1, 0.0, g_iBlue, 10); TE_SendToClient(iClient);
 	
-	KS_ReplyToCommand(iClient, "Created {red}X{default}, {green}Y{default}, and {blue}Z{default} axis markers.");
+	KS_ReplyToCommand(iClient, "%t", "CreateAxis");
 	
 	return Plugin_Handled;
 }
@@ -410,7 +434,7 @@ public Action Command_Color(int iClient, int iArgs)
 	
 	if (iArgs < 1)
 	{
-		KS_ReplyToCommand(iClient, "Usage: {green}[tag]color{default} <color name> <all|hud>");
+		KS_ReplyToCommand(iClient, "%t", "CMD_Color");
 		return Plugin_Handled;
 	}
 	
@@ -438,9 +462,9 @@ public Action Command_Color(int iClient, int iArgs)
 			
 			KS_ChangeBeam(iClient, iProp);
 			
-			KS_ReplyToCommand(iClient, "Set color on %s to {green}%s{default}.", sEntityType, sColor);
+			KS_ReplyToCommand(iClient, "%t", "SetColor", sEntityType, sColor);
 		} else {
-			KS_ReplyToCommand(iClient, "Color {green}%s{default} not found.", sColor);
+			KS_ReplyToCommand(iClient, "%t", "ColorNotFound", sColor);
 			return Plugin_Handled;
 		}
 	} else {
@@ -484,7 +508,7 @@ public Action Command_Delete(int iClient, int iArgs)
 		
 		KS_DissolveEntity(iProp);
 		
-		KS_ReplyToCommand(iClient, "Removed %s.", sEntityType);
+		KS_ReplyToCommand(iClient, "%t", "Remove", sEntityType);
 	} else {
 		KS_NotYours(iClient, iProp);
 		return Plugin_Handled;
@@ -500,7 +524,7 @@ public Action Command_Door(int iClient, int iArgs)
 	
 	if (iArgs < 1)
 	{
-		KS_ReplyToCommand(iClient, "Usage: {green}[tag]door{default} <skin number>");
+		KS_ReplyToCommand(iClient, "%t", "CMD_Door");
 		return Plugin_Handled;
 	}
 	
@@ -508,7 +532,7 @@ public Action Command_Door(int iClient, int iArgs)
 	
 	if (!KS_CheckCelCount(iClient))
 	{
-		KS_ReplyToCommand(iClient, "You have reached the max cel limit. ({green}%i{default})", KS_GetCelCount(iClient));
+		KS_ReplyToCommand(iClient, "%t", "MaxCelLimit", KS_GetCelCount(iClient));
 		return Plugin_Handled;
 	}
 	
@@ -525,7 +549,7 @@ public Action Command_Door(int iClient, int iArgs)
 	
 	Call_Finish();
 	
-	KS_ReplyToCommand(iClient, "Spawned {green}door{default} cel.");
+	KS_ReplyToCommand(iClient, "%t", "DoorSpawn");
 	
 	return Plugin_Handled;
 }
@@ -548,11 +572,11 @@ public Action Command_FreezeIt(int iClient, int iArgs)
 		
 		if (KS_CheckEntityType(iProp, "door"))
 		{
-			KS_ReplyToCommand(iClient, "Door has been locked.");
+			KS_ReplyToCommand(iClient, "%t", "DoorLock");
 			
 			AcceptEntityInput(iProp, "lock");
 		} else {
-			KS_ReplyToCommand(iClient, "Disabled motion on %s.", sEntityType);
+			KS_ReplyToCommand(iClient, "%t", "DisableMotion", sEntityType);
 			
 			KS_SetFrozen(iProp, true);
 		}
@@ -572,14 +596,14 @@ public Action Command_Internet(int iClient, int iArgs)
 	
 	if (!KS_CheckCelCount(iClient))
 	{
-		KS_ReplyToCommand(iClient, "You have reached the max cel limit. ({green}%i{default})", KS_GetCelCount(iClient));
+		KS_ReplyToCommand(iClient, "%t", "MaxCelLimit", KS_GetCelCount(iClient));
 		return Plugin_Handled;
 	}
 	
 	GetClientAbsAngles(iClient, fAngles);
 	KS_GetCrosshairHitOrigin(iClient, fOrigin);
 	
-	int iInternet = KS_SpawnInternet(iClient, "https://github.com/rockzehh/kingssandbox", fAngles, fOrigin, 255, 255, 255, 255);
+	int iInternet = KS_SpawnInternet(iClient, g_sDefaultInternetURL, fAngles, fOrigin, 255, 255, 255, 255);
 	
 	Call_StartForward(g_hOnCelSpawn);
 	
@@ -589,7 +613,7 @@ public Action Command_Internet(int iClient, int iArgs)
 	
 	Call_Finish();
 	
-	KS_ReplyToCommand(iClient, "Spawned {green}internet{default} cel.");
+	KS_ReplyToCommand(iClient, "%t", "InternetSpawn");
 	
 	return Plugin_Handled;
 }
@@ -669,7 +693,7 @@ public Action Command_NoKill(int iClient, int iArgs)
 {
 	KS_SetNoKill(iClient, !KS_GetNoKill(iClient));
 	
-	KS_ReplyToCommand(iClient, "Turned nokill %s.", KS_GetNoKill(iClient) ? "on" : "off");
+	KS_ReplyToCommand(iClient, "%t", "NoKill", KS_GetNoKill(iClient) ? "on" : "off");
 	
 	return Plugin_Handled;
 }
@@ -681,7 +705,7 @@ public Action Command_Rotate(int iClient, int iArgs)
 	
 	if (iArgs < 3)
 	{
-		KS_ReplyToCommand(iClient, "Usage: {green}[tag]rotate{default} <x> <y> <z>");
+		KS_ReplyToCommand(iClient, "%t", "CMD_Rotate");
 		return Plugin_Handled;
 	}
 	
@@ -734,10 +758,12 @@ public Action Command_SetOwner(int iClient, int iArgs)
 		return Plugin_Handled;
 	}
 	
-	char sEntityType[64], sTarget[PLATFORM_MAX_PATH];
+	char sEntityType[64], sNames[2][PLATFORM_MAX_PATH], sTarget[PLATFORM_MAX_PATH];
 	int iProp = KS_GetClientAimTarget(iClient);
 	
 	GetCmdArg(1, sTarget, sizeof(sTarget));
+
+	GetClientName(iClient, sNames[0], sizeof(sNames[]));
 	
 	if (StrEqual(sTarget, ""))
 	{
@@ -747,7 +773,7 @@ public Action Command_SetOwner(int iClient, int iArgs)
 		
 		KS_ChangeBeam(iClient, iProp);
 		
-		KS_ReplyToCommand(iClient, "Set ownership of {green}%s{default} to {green}%N{default}.", sEntityType, iClient);
+		KS_ReplyToCommand(iClient, "%t", "SetOwnerClient", sEntityType, sNames[0]);
 		
 		return Plugin_Handled;
 	}
@@ -756,16 +782,18 @@ public Action Command_SetOwner(int iClient, int iArgs)
 	
 	if (iTarget == -1)
 	{
-		KS_ReplyToCommand(iClient, "Cannot find specified target.");
+		KS_ReplyToCommand(iClient, "%t", "CantFindTarget");
 		return Plugin_Handled;
 	}
+
+	GetClientName(iTarget, sNames[1], sizeof(sNames[]));
 	
 	KS_SetOwner(iTarget, iProp);
 	
 	KS_ChangeBeam(iClient, iProp);
 	
-	KS_ReplyToCommand(iClient, "Set ownership of {green}%s{default} to {green}%N{default}.", sEntityType, iTarget);
-	KS_ReplyToCommand(iTarget, "{green}%N{default} set ownership of {green}%s{default} to {green}%N{default}.", iClient, sEntityType, iTarget);
+	KS_ReplyToCommand(iClient, "%t", "SetOwnerClient", sEntityType, sNames[1]);
+	KS_ReplyToCommand(iTarget, "%t", "SetOwnerTarget", sNames[0], sEntityType, sNames[1]);
 	
 	return Plugin_Handled;
 }
@@ -776,7 +804,7 @@ public Action Command_SetURL(int iClient, int iArgs)
 	
 	if (iArgs < 1)
 	{
-		KS_ReplyToCommand(iClient, "Usage: {green}[tag]seturl{default} <url>");
+		KS_ReplyToCommand(iClient, "%t", "CMD_SetURL");
 		return Plugin_Handled;
 	}
 	
@@ -798,11 +826,11 @@ public Action Command_SetURL(int iClient, int iArgs)
 			
 			KS_ChangeBeam(iClient, iProp);
 			
-			KS_ReplyToCommand(iClient, "Updated url on internet cel.");
+			KS_ReplyToCommand(iClient, "%t", "SetURL");
 			
 			return Plugin_Handled;
 		} else {
-			KS_ReplyToCommand(iClient, "You can only use this command on internet cels.");
+			KS_ReplyToCommand(iClient, "%t", "OnlyOnInternetCels");
 			return Plugin_Handled;
 		}
 	} else {
@@ -826,7 +854,7 @@ public Action Command_Spawn(int iClient, int iArgs)
 	
 	if (!KS_CheckPropCount(iClient))
 	{
-		KS_ReplyToCommand(iClient, "You have reached the max prop limit. ({green}%i{default})", KS_GetPropCount(iClient));
+		KS_ReplyToCommand(iClient, "%t", "MaxPropLimit", KS_GetPropCount(iClient));
 		return Plugin_Handled;
 	}
 	
@@ -847,9 +875,9 @@ public Action Command_Spawn(int iClient, int iArgs)
 		
 		Call_Finish();
 		
-		KS_ReplyToCommand(iClient, "Spawned prop {green}%s{default}.", sAlias);
+		KS_ReplyToCommand(iClient, "%t", "SpawnProp", sAlias);
 	} else {
-		KS_ReplyToCommand(iClient, "Prop {green}%s{default} not found.", sAlias);
+		KS_ReplyToCommand(iClient, "%t", "PropNotFound", sAlias);
 		return Plugin_Handled;
 	}
 	
@@ -874,13 +902,13 @@ public Action Command_Solid(int iClient, int iArgs)
 		
 		if (KS_CheckEntityType(iProp, "cycler"))
 		{
-			KS_ReplyToCommand(iClient, "You cannot use this command on this prop.");
+			KS_ReplyToCommand(iClient, "%t", "CantUseCommand-Prop");
 			return Plugin_Handled;
 		}
 		
 		KS_SetSolid(iProp, !KS_IsSolid(iProp));
 		
-		KS_ReplyToCommand(iClient, "Turned solidicity %s on %s.", KS_IsSolid(iProp) ? "on" : "off", sEntityType);
+		KS_ReplyToCommand(iClient, "%t", "SetSolidicity", KS_IsSolid(iProp) ? "on" : "off", sEntityType);
 		
 		KS_ChangeBeam(iClient, iProp);
 	} else {
@@ -930,11 +958,11 @@ public Action Command_UnfreezeIt(int iClient, int iArgs)
 		
 		if (KS_CheckEntityType(iProp, "door"))
 		{
-			KS_ReplyToCommand(iClient, "Door has been unlocked.");
+			KS_ReplyToCommand(iClient, "%t", "DoorUnlock");
 			
 			AcceptEntityInput(iProp, "unlock");
 		} else {
-			KS_ReplyToCommand(iClient, "Enabled motion on %s.", sEntityType);
+			KS_ReplyToCommand(iClient, "%t", "EnableMotion", sEntityType);
 			
 			KS_SetFrozen(iProp, false);
 		}
@@ -1068,6 +1096,10 @@ public int Native_ChangeBeam(Handle hPlugin, int iNumParams)
 	PrecacheSound(sSound);
 	
 	EmitSoundToAll(sSound, iEntity, 2, 100, 0, 1.0, 100, -1, NULL_VECTOR, NULL_VECTOR, true, 0.0);
+}
+
+public int Native_ChangePositionRelativeToOrigin(Handle hPlugin, int iNumParams)
+{
 }
 
 public int Native_CheckCelCount(Handle hPlugin, int iNumParams)
@@ -1468,7 +1500,7 @@ public int Native_NotLooking(Handle hPlugin, int iNumParams)
 {
 	int iClient = GetNativeCell(1);
 	
-	KS_ReplyToCommand(iClient, "You are not looking at anything.");
+	KS_ReplyToCommand(iClient, "%t", "NotLooking");
 }
 
 public int Native_NotYours(Handle hPlugin, int iNumParams)
@@ -1480,7 +1512,7 @@ public int Native_NotYours(Handle hPlugin, int iNumParams)
 	
 	KS_GetEntityTypeName(KS_GetEntityType(iEntity), sEntityType, sizeof(sEntityType));
 	
-	KS_ReplyToCommand(iClient, "This %s does not belong to you.", sEntityType);
+	KS_ReplyToCommand(iClient, "%t", "NotYours", sEntityType);
 }
 
 public int Native_PlayChatMessageSound(Handle hPlugin, int iNumParams)

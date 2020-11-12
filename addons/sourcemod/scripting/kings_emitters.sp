@@ -39,6 +39,8 @@ public Plugin myinfo =
 
 public void OnPluginStart()
 {
+	LoadTranslations("ks-emitters.phrases");
+
 	g_hOnEmitterSpawn = CreateGlobalForward("KS_OnEmitterSpawn", ET_Hook, Param_Cell, Param_Cell, Param_Cell);
 	
 	RegConsoleCmd("sm_emitter", Command_Emitter, "King's Sandbox: Spawns a working emitter cel.");
@@ -52,7 +54,7 @@ public Action Command_Emitter(int iClient, int iArgs)
 	
 	if (iArgs < 1)
 	{
-		KS_ReplyToCommand(iClient, "Usage: {green}[tag]emitter{default} <emitter type>");
+		KS_ReplyToCommand(iClient, "%t", "CMD_Emitter");
 		return Plugin_Handled;
 	}
 	
@@ -62,7 +64,7 @@ public Action Command_Emitter(int iClient, int iArgs)
 	
 	if (etEmitterType == EMITTER_UNKNOWN)
 	{
-		KS_ReplyToCommand(iClient, "Invalid emitter type.");
+		KS_ReplyToCommand(iClient, "%t", "InvalidEmitter");
 		return Plugin_Handled;
 	}
 	
@@ -80,7 +82,7 @@ public Action Command_Emitter(int iClient, int iArgs)
 	
 	KS_GetEmitterTypeName(etEmitterType, sEmitterType, sizeof(sEmitterType));
 	
-	KS_ReplyToCommand(iClient, "Spawned {green}%s{default} emitter cel.", sEmitterType);
+	KS_ReplyToCommand(iClient, "%t", "SpawnEmitter", sEmitterType);
 	
 	return Plugin_Handled;
 }

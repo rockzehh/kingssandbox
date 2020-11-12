@@ -3,12 +3,8 @@
 #endif
 #define _kingssandbox_included
 
-#include <morecolors>
 #include <sdkhooks>
 #include <sdktools>
-#include <sourcemod>
-#undef REQUIRE_PLUGIN
-#include <updater>
 
 enum EntityCatagory
 {
@@ -23,7 +19,7 @@ enum EntityType
 	ENTTYPE_DOOR = 1, /**< Door prop type. prop_door_rotating */
 	ENTTYPE_DYNAMIC = 2, /**< Dynamic prop type. prop_dynamic, prop_dynamic_override */
 	ENTTYPE_EMITTER = 3, /**< Emitter prop type. emitter_* */
-	ENTTYPE_INTERNET = 4, /**< Internet prop type. cel_internet */
+	ENTTYPE_INTERNET = 4, /**< Internet prop type. cel_internet */ 
 	ENTTYPE_PHYSICS = 5, /**< Physics prop type. prop_physics, prop_physics_override */
 	ENTTYPE_UNKNOWN = 6, /**< Unknown prop type. */
 };
@@ -41,6 +37,8 @@ enum EmitterType
 };
 
 #define MAXENTS 2048 /**< Max number of entities Source can handle. */
+#define MAX_MESSAGE_LENGTH		256 /**< Max length a message can be. */
+#define MAX_BUFFER_LENGTH		(MAX_MESSAGE_LENGTH * 4) /** Max length the buffer can be. */
 #define SANDBOX_VERSION "1.1.0.0" /**< Global version. */
 #define UPDATE_URL "https://raw.githubusercontent.com/rockzehh/kingssandbox/master/addons/sourcemod/updater.txt" /**< The url Updater uses to update. */
 
@@ -68,6 +66,14 @@ native void KS_AddToPropCount(int iClient);
  * @param iEntity		Index of the entity.
  */
 native void KS_ChangeBeam(int iClient, int iEntity);
+
+/**
+ * Changes a entities position relative to it's origin.
+ *
+ * @param iEntity		Index of the entity.
+ * @param fOrigin		Add origin buffer.
+ */
+native void KS_ChangePositionRelativeToOrigin(int iEntity, const float fAddOrigin[3]);
 
 /**
  * Checks if the client's cel count has reached the server's cel limit.
@@ -319,6 +325,8 @@ native void KS_PrintToChatAll(const char[] sMessage, any ...);
 native void KS_RemovalBeam(int iClient, int iEntity);
 
 native void KS_ReplyToCommand(int iClient, const char[] sMessage, any ...);
+
+//native void KS_ReplyToCommandTranslated(int iClient, const char[] sMessage, any ...);
 
 native void KS_SetAuthID(int iClient);
 

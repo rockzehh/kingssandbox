@@ -14,7 +14,7 @@ Handle g_hLandDrawing;
 Handle g_hPositions;
 
 int g_iLand;
-int g_iLandPhase[MAXPLAYERS + 1][3] = 0;
+int g_iLandPhase[MAXPLAYERS + 1][3];
 
 public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErr_max)
 {
