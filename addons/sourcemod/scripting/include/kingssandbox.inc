@@ -8,7 +8,7 @@
 
 enum EntityCatagory
 {
-	ENTCATAGORY_CEL = 0, /**< Cel entity. cel_internet, emitter_*, prop_door_rotating */
+	ENTCATAGORY_CEL = 0, /**< Cel entity. cel_internet, effect_*, prop_door_rotating */
 	ENTCATAGORY_PROP = 1, /**< Prop entity. cycler, prop_dynamic, prop_dynamic_override, prop_physics, prop_physics_override */
 	ENTCATAGORY_UNKNOWN = 2, /**< Unknown entity. */
 };
@@ -18,22 +18,22 @@ enum EntityType
 	ENTTYPE_CYCLER = 0, /**< Cycler prop type. cycler */
 	ENTTYPE_DOOR = 1, /**< Door prop type. prop_door_rotating */
 	ENTTYPE_DYNAMIC = 2, /**< Dynamic prop type. prop_dynamic, prop_dynamic_override */
-	ENTTYPE_EMITTER = 3, /**< Emitter prop type. emitter_* */
+	ENTTYPE_EFFECT = 3, /**< Effect prop type. effect_* */
 	ENTTYPE_INTERNET = 4, /**< Internet prop type. cel_internet */ 
 	ENTTYPE_PHYSICS = 5, /**< Physics prop type. prop_physics, prop_physics_override */
 	ENTTYPE_UNKNOWN = 6, /**< Unknown prop type. */
 };
 
-enum EmitterType
+enum EffectType
 {
-	EMITTER_CORE = 0,  /**< Core emitter type. env_citadel_energy_core */
-	EMITTER_EXPLOSION = 1, /**< Explosion emitter type. env_explosion */
-	EMITTER_FIRE = 2,  /**< Fire emitter type. env_fire */
-	EMITTER_SHAKE = 3, /**< Shake emitter type. env_shake */
-	EMITTER_SMOKESTACK = 4,  /**< Smokestack emitter type. env_smokestack */
-	EMITTER_SPOTLIGHT = 5,  /**< Spotlight emitter type. point_spotlight */
-	EMITTER_STEAM = 6,  /**< Steam emitter type. env_steam */
-	EMITTER_UNKNOWN = 7, /**< Unknown emitter type. */
+	EFFECT_CORE = 0,  /**< Core effect type. env_citadel_energy_core */
+	EFFECT_EXPLOSION = 1, /**< Explosion effect type. env_explosion */
+	EFFECT_FIRE = 2,  /**< Fire effect type. env_fire */
+	EFFECT_SHAKE = 3, /**< Shake effect type. env_shake */
+	EFFECT_SMOKESTACK = 4,  /**< Smokestack effect type. env_smokestack */
+	EFFECT_SPOTLIGHT = 5,  /**< Spotlight effect type. point_spotlight */
+	EFFECT_STEAM = 6,  /**< Steam effect type. env_steam */
+	EFFECT_UNKNOWN = 7, /**< Unknown effect type. */
 };
 
 #define MAXENTS 2048 /**< Max number of entities Source can handle. */
@@ -42,6 +42,7 @@ enum EmitterType
 #define SANDBOX_VERSION "1.1.0.0" /**< Global version. */
 #define UPDATE_URL "https://raw.githubusercontent.com/rockzehh/kingssandbox/master/addons/sourcemod/updater.txt" /**< The url Updater uses to update. */
 
+float g_fUp[3] = { -90.0, 0.0, 0.0 };
 float g_fZero[3] = { 0.0, 0.0, 0.0 };
 
 //========== kingssandbox.smx ==========
@@ -291,7 +292,7 @@ native bool KS_IsEntity(int iEntity);
 /**
  * Checks if the entity is frozen.
  *
- * @param iEmitter		Entity index.
+ * @param iEffect		Entity index.
  * @return				True if the entity is, false if it isn't.
  */
 native bool KS_IsFrozen(int iEntity);
@@ -301,7 +302,7 @@ native bool KS_IsPlayer(int iClient);
 /**
  * Checks if the entity is solid.
  *
- * @param iEmitter		Entity index.
+ * @param iEffect		Entity index.
  * @return				True if the entity is, false if it isn't.
  */
 native bool KS_IsSolid(int iEntity);
@@ -366,66 +367,66 @@ native void KS_SubFromCelCount(int iClient);
 
 native void KS_SubFromPropCount(int iClient);
 
-//========== ks_emitters.smx ==========
+//========== ks_effects.smx ==========
 /**
- * Checks if the emitter type matches the search string.
+ * Checks if the effect type matches the search string.
  *
- * @param iEmitter		Emitter index.
- * @param sType			Emitter type to check.
- * @return				True if the string matches the emitter type, false if it doesn't.
+ * @param iEffect		Effect index.
+ * @param sType			Effect type to check.
+ * @return				True if the string matches the effect type, false if it doesn't.
  */
-native bool KS_CheckEmitterType(const int iEmitter, const char[] sType);
+native bool KS_CheckEffectType(const int iEffect, const char[] sType);
 
 /**
- * Gets the emitter attachment entity index.
+ * Gets the effect attachment entity index.
  *
- * @param iEmitter		Emitter index.
- * @return				Returns the emitter attachment index.
+ * @param iEffect		Effect index.
+ * @return				Returns the effect attachment index.
  */
-native int KS_GetEmitterAttachment(int iEmitter);
+native int KS_GetEffectAttachment(int iEffect);
 
 /**
- * Gets the emitter type.
+ * Gets the effect type.
  *
- * @param iEmitter		Emitter index.
- * @return				Returns the emitter type.
+ * @param iEffect		Effect index.
+ * @return				Returns the effect type.
  */
-native EmitterType KS_GetEmitterType(int iEmitter);
+native EffectType KS_GetEffectType(int iEffect);
 
 /**
- * Gets the emitter type from name.
+ * Gets the effect type from name.
  *
- * @param sEmitterName	String to check.
- * @return				Returns the emitter type, EMITTER_UNKNOWN if the name is invalid.
+ * @param sEffectName	String to check.
+ * @return				Returns the effect type, EFFECT_UNKNOWN if the name is invalid.
  */
-native EmitterType KS_GetEmitterTypeFromName(const char[] sEmitterName);
+native EffectType KS_GetEffectTypeFromName(const char[] sEffectName);
 
 /**
- * Gets the emitter type name from emitter type.
+ * Gets the effect type name from effect type.
  *
- * @param etEmitterType	Emitter type.
- * @param sEmitterType	Buffer to store the emitter type.
+ * @param etEffectType	Effect type.
+ * @param sEffectType	Buffer to store the effect type.
  * @param iMaxLength	Maximum length of the buffer.
  */
-native char KS_GetEmitterTypeName(EmitterType etEmitterType, char[] sEmitterType, int iMaxLength);
+native char KS_GetEffectTypeName(EffectType etEffectType, char[] sEffectType, int iMaxLength);
 
 /**
- * Checks if the emitter is active.
+ * Checks if the effect is active.
  *
- * @param iEmitter		Emitter index.
- * @return				True if the emitter is, false if it isn't.
+ * @param iEffect		Effect index.
+ * @return				True if the effect is, false if it isn't.
  */
-native bool KS_IsEmitterActive(int iEmitter);
+native bool KS_IsEffectActive(int iEffect);
 
-forward void KS_OnEmitterSpawn(int iEmitter, int iOwner, EmitterType etEmitterType);
+forward void KS_OnEffectSpawn(int iEffect, int iOwner, EffectType etEffectType);
 
-native void KS_SetEmitterActive(int iEmitter, bool bActive);
+native void KS_SetEffectActive(int iEffect, bool bActive);
 
-native void KS_SetEmitterAttachment(int iEmitter, int iAttachment);
+native void KS_SetEffectAttachment(int iEffect, int iAttachment);
 
-native void KS_SetEmitterType(int iEmitter, EmitterType etEmitterType);
+native void KS_SetEffectType(int iEffect, EffectType etEffectType);
 
-native int KS_SpawnEmitter(const int iClient, const float fOrigin[3], const EmitterType etEmitter, bool bActivate, const int iR, const int iG, const int iB, const int iA);
+native int KS_SpawnEffect(const int iClient, const float fOrigin[3], const EffectType etEffect, bool bActivate, const int iR, const int iG, const int iB, const int iA);
 
 //========== ks_help.smx ==========
 native char KS_CheckInputURL(const char[] sInput, char[] sOutput, int iMaxLength);
@@ -465,47 +466,56 @@ native void KS_SendHudMessage(int iClient, int iChannel, float fX, float fY, int
 
 native void KS_SetHudColor(int iClient, int iR, int iG, int iB, int iA);
 
+//========== ks_land.smx ==========
+native int KS_CreateLandEntity(int iUserID, float fMin[3], float fMax[3]);
+native int KS_GetLandOwner(float fBottomCorner[3], float fTopCorner[3]);
+native bool KS_IsClientInLand(int iClient, int iLand);
+native bool KS_IsEntityInLand(int iEntity, int iLand);
+native bool KS_IsPositionInBox(float fPos[3], float fBottomCorner[3], float fTopCorner[3], int iClient);
+native void KS_DrawLand(float fFrom[3], float fTo[3], float fLife, int iColor[4], bool bFlat=true);
+native void KS_GetMiddleOfABox(float fMin[3], float fMax[3], float fBuffer[3]);
+
 //========== ks_serverconvars.smx ==========
 native void KS_ReloadServerConVars();
 
 //Hooks:
-public void Hook_EmitterUse(int iEntity, int iActivator, int iCaller, UseType utType, float fValue)
+public void Hook_EffectUse(int iEntity, int iActivator, int iCaller, UseType utType, float fValue)
 {
-	switch(KS_GetEmitterType(iEntity))
+	switch(KS_GetEffectType(iEntity))
 	{
-		case EMITTER_CORE:
+		case EFFECT_CORE:
 		{
 			SetVariantFloat(0.0);
-			AcceptEntityInput(KS_GetEmitterAttachment(iEntity), KS_IsEmitterActive(iEntity) ? "StartDischarge" : "StartCharge");
+			AcceptEntityInput(KS_GetEffectAttachment(iEntity), KS_IsEffectActive(iEntity) ? "StartDischarge" : "StartCharge");
 		}
-		case EMITTER_EXPLOSION:
+		case EFFECT_EXPLOSION:
 		{
-			AcceptEntityInput(KS_GetEmitterAttachment(iEntity), "Explode");
+			AcceptEntityInput(KS_GetEffectAttachment(iEntity), "Explode");
 		}
-		case EMITTER_FIRE:
+		case EFFECT_FIRE:
 		{
 			SetVariantFloat(0.0);
-			AcceptEntityInput(KS_GetEmitterAttachment(iEntity), KS_IsEmitterActive(iEntity) ? "StartFire" : "ExtinguishTemporary");
+			AcceptEntityInput(KS_GetEffectAttachment(iEntity), KS_IsEffectActive(iEntity) ? "StartFire" : "ExtinguishTemporary");
 		}
-		case EMITTER_SHAKE:
+		case EFFECT_SHAKE:
 		{
-			AcceptEntityInput(KS_GetEmitterAttachment(iEntity), "StartShake");
+			AcceptEntityInput(KS_GetEffectAttachment(iEntity), "StartShake");
 		}
-		case EMITTER_SMOKESTACK:
+		case EFFECT_SMOKESTACK:
 		{
-			AcceptEntityInput(KS_GetEmitterAttachment(iEntity), KS_IsEmitterActive(iEntity) ? "TurnOn" : "TurnOff");
+			AcceptEntityInput(KS_GetEffectAttachment(iEntity), KS_IsEffectActive(iEntity) ? "TurnOn" : "TurnOff");
 		}
-		case EMITTER_SPOTLIGHT:
+		case EFFECT_SPOTLIGHT:
 		{
-			AcceptEntityInput(KS_GetEmitterAttachment(iEntity), KS_IsEmitterActive(iEntity) ? "LightOn" : "LightOff");
+			AcceptEntityInput(KS_GetEffectAttachment(iEntity), KS_IsEffectActive(iEntity) ? "LightOn" : "LightOff");
 		}
-		case EMITTER_STEAM:
+		case EFFECT_STEAM:
 		{
-			AcceptEntityInput(KS_GetEmitterAttachment(iEntity), KS_IsEmitterActive(iEntity) ? "TurnOn" : "TurnOff");
+			AcceptEntityInput(KS_GetEffectAttachment(iEntity), KS_IsEffectActive(iEntity) ? "TurnOn" : "TurnOff");
 		}
 	}
 	
-	KS_SetEmitterActive(iEntity, !KS_IsEmitterActive(iEntity));
+	KS_SetEffectActive(iEntity, !KS_IsEffectActive(iEntity));
 }
 
 public void Hook_InternetUse(int iEntity, int iActivator, int iCaller, UseType utType, float fValue)

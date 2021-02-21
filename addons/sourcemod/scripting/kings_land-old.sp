@@ -1,6 +1,9 @@
 #pragma semicolon 1
 
 #include <kingssandbox>
+#include <sdkhooks>
+#include <sdktools>
+#include <sourcemod>
 
 #pragma newdecls required
 

@@ -1,6 +1,7 @@
 #pragma semicolon 1
 
 #include <kingssandbox>
+#include <sourcemod>
 
 #pragma newdecls required
 
@@ -38,8 +39,6 @@ public void OnPluginStart()
 	g_cvHudEnable.AddChangeHook(KSHud_OnConVarChanged);
 	
 	g_bHudEnable = view_as<bool>(g_cvHudEnable.IntValue);
-	
-	AutoExecConfig(true, "kings-hud", "sourcemod");
 }
 
 public void OnMapStart()
@@ -186,17 +185,17 @@ public Action Timer_HUD(Handle hTimer)
 							KS_GetHudColor(KS_GetOwner(iEntity), iColor);
 						}
 					} else if (KS_CheckEntityCatagory(iEntity, ENTCATAGORY_CEL)) {
-						if (KS_GetEntityType(iEntity) == ENTTYPE_EMITTER)
+						if (KS_GetEntityType(iEntity) == ENTTYPE_EFFECT)
 						{
-							KS_GetEmitterTypeName(KS_GetEmitterType(iEntity), sPropname, sizeof(sPropname));
+							KS_GetEffectTypeName(KS_GetEffectType(iEntity), sPropname, sizeof(sPropname));
 							
 							if (KS_CheckOwner(i, iEntity))
 							{
-								Format(sMessage, sizeof(sMessage), "Emitter: %s", sPropname);
+								Format(sMessage, sizeof(sMessage), "Effect: %s", sPropname);
 								
 								KS_GetHudColor(i, iColor);
 							} else {
-								Format(sMessage, sizeof(sMessage), "Owner: %N\nEmitter: %s", KS_GetOwner(iEntity), sPropname);
+								Format(sMessage, sizeof(sMessage), "Owner: %N\nEffect: %s", KS_GetOwner(iEntity), sPropname);
 								
 								KS_GetHudColor(KS_GetOwner(iEntity), iColor);
 							}

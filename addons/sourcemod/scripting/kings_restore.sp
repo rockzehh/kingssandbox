@@ -1,6 +1,9 @@
 #pragma semicolon 1
 
 #include <kingssandbox>
+#include <sdkhooks>
+#include <sdktools>
+#include <sourcemod>
 
 #pragma newdecls required
 
@@ -58,24 +61,24 @@ public void KS_OnCelSpawn(int iCel, int iOwner, EntityType etEntityType)
 	smEntities.SetString(sEntity, sFinalString, true);
 }
 
-public void KS_OnEmitterSpawn(int iEmitter, int iOwner, EmitterType etEmitterType)
+public void KS_OnEffectSpawn(int iEffect, int iOwner, EffectType etEffectType)
 {
-	bool bEmitterActive, bFrozen, bSolid;
+	bool bEffectActive, bFrozen, bSolid;
 	char sClassname[PLATFORM_MAX_PATH], sEntity[16], sFinalString[PLATFORM_MAX_PATH];
-	EmitterType etType = KS_GetEmitterType(iEmitter);
-	int iColor[4], iEmitterAttachment, iOwnerUpdated;
+	EffectType etType = KS_GetEffectType(iEffect);
+	int iColor[4], iEffectAttachment, iOwnerUpdated;
 	
-	GetEntityClassname(iEmitter, sClassname, sizeof(sClassname));
-	GetEntityRenderColor(iEmitter, iColor[0], iColor[1], iColor[2], iColor[3]);
-	bFrozen = KS_IsFrozen(iEmitter);
-	bSolid = KS_IsSolid(iEmitter);
-	iOwnerUpdated = KS_GetOwner(iEmitter);
-	bEmitterActive = KS_IsEmitterActive(iEmitter);
-	iEmitterAttachment = KS_GetEmitterAttachment(iEmitter);
+	GetEntityClassname(iEffect, sClassname, sizeof(sClassname));
+	GetEntityRenderColor(iEffect, iColor[0], iColor[1], iColor[2], iColor[3]);
+	bFrozen = KS_IsFrozen(iEffect);
+	bSolid = KS_IsSolid(iEffect);
+	iOwnerUpdated = KS_GetOwner(iEffect);
+	bEffectActive = KS_IsEffectActive(iEffect);
+	iEffectAttachment = KS_GetEffectAttachment(iEffect);
 	
-	Format(sFinalString, sizeof(sFinalString), "%s|%i|%i|%i|%i|%i|%i|%i|%i|%i|%i", sClassname, iColor[0], iColor[1], iColor[2], iColor[3], view_as<int>(bFrozen), view_as<int>(bSolid), iOwnerUpdated, view_as<int>(bEmitterActive), iEmitterAttachment, view_as<int>(etType));
+	Format(sFinalString, sizeof(sFinalString), "%s|%i|%i|%i|%i|%i|%i|%i|%i|%i|%i", sClassname, iColor[0], iColor[1], iColor[2], iColor[3], view_as<int>(bFrozen), view_as<int>(bSolid), iOwnerUpdated, view_as<int>(bEffectActive), iEffectAttachment, view_as<int>(etType));
 	
-	IntToString(iEmitter, sEntity, sizeof(sEntity));
+	IntToString(iEffect, sEntity, sizeof(sEntity));
 	
 	smEntities.SetString(sEntity, sFinalString, true);
 }
@@ -195,7 +198,7 @@ public Action Command_RestoreEntities(int iClient, int iArgs)
 				KS_SetOwner(StringToInt(sPropString[7]), i);
 				
 				KS_SetSolid(i, view_as<bool>(StringToInt(sPropString[6])));
-			} else if (etType == ENTTYPE_EMITTER)
+			} else if (etType == ENTTYPE_EFFECT)
 			{
 				char sPropString[11][128];
 				
@@ -215,17 +218,17 @@ public Action Command_RestoreEntities(int iClient, int iArgs)
 				
 				KS_SetSolid(i, view_as<bool>(StringToInt(sPropString[6])));
 				
-				KS_SetEmitterAttachment(i, StringToInt(sPropString[9]));
+				KS_SetEffectAttachment(i, StringToInt(sPropString[9]));
 				
-				KS_SetColor(KS_GetEmitterAttachment(i), StringToInt(sPropString[1]), StringToInt(sPropString[2]), StringToInt(sPropString[3]), StringToInt(sPropString[4]));
-				KS_SetEntity(KS_GetEmitterAttachment(i), true);
-				KS_SetOwner(StringToInt(sPropString[7]), KS_GetEmitterAttachment(i));
+				KS_SetColor(KS_GetEffectAttachment(i), StringToInt(sPropString[1]), StringToInt(sPropString[2]), StringToInt(sPropString[3]), StringToInt(sPropString[4]));
+				KS_SetEntity(KS_GetEffectAttachment(i), true);
+				KS_SetOwner(StringToInt(sPropString[7]), KS_GetEffectAttachment(i));
 				
-				SDKHook(i, SDKHook_UsePost, Hook_EmitterUse);
+				SDKHook(i, SDKHook_UsePost, Hook_EffectUse);
 				
-				KS_SetEmitterActive(i, view_as<bool>(StringToInt(sPropString[8])));
+				KS_SetEffectActive(i, view_as<bool>(StringToInt(sPropString[8])));
 				
-				KS_SetEmitterType(i, view_as<EmitterType>(StringToInt(sPropString[10])));
+				KS_SetEffectType(i, view_as<EffectType>(StringToInt(sPropString[10])));
 			} else if (etType == ENTTYPE_CYCLER || etType == ENTTYPE_DYNAMIC || etType == ENTTYPE_PHYSICS)
 			{
 				char sPropString[10][128];

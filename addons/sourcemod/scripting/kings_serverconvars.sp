@@ -1,6 +1,7 @@
 #pragma semicolon 1
 
 #include <kingssandbox>
+#include <sourcemod>
 
 #pragma newdecls required
 

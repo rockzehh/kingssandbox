@@ -249,8 +249,6 @@ public void OnPluginStart()
 	KS_SetCelLimit(g_cvCelLimit.IntValue);
 	g_cvDefaultInternetURL.GetString(g_sDefaultInternetURL, sizeof(g_sDefaultInternetURL));
 	KS_SetPropLimit(g_cvPropLimit.IntValue);
-	
-	AutoExecConfig(true, "kings-main", "sourcemod");
 }
 
 public void OnClientAuthorized(int iClient, const char[] sAuthID)
@@ -392,8 +390,8 @@ public Action Command_Alpha(int iClient, int iArgs)
 		KS_GetEntityTypeName(KS_GetEntityType(iProp), sEntityType, sizeof(sEntityType));
 		
 		KS_SetColor(iProp, -1, -1, -1, iAlpha);
-		if (KS_CheckEntityType(iProp, "emitter"))
-			KS_SetColor(KS_GetEmitterAttachment(iProp), -1, -1, -1, iAlpha);
+		if (KS_CheckEntityType(iProp, "effect"))
+			KS_SetColor(KS_GetEffectAttachment(iProp), -1, -1, -1, iAlpha);
 		
 		KS_ChangeBeam(iClient, iProp);
 		
@@ -457,8 +455,8 @@ public Action Command_Color(int iClient, int iArgs)
 			KS_GetEntityTypeName(KS_GetEntityType(iProp), sEntityType, sizeof(sEntityType));
 			
 			KS_SetColor(iProp, StringToInt(sColorBuffer[0]), StringToInt(sColorBuffer[1]), StringToInt(sColorBuffer[2]), -1);
-			if (KS_CheckEntityType(iProp, "emitter"))
-				KS_SetColor(KS_GetEmitterAttachment(iProp), StringToInt(sColorBuffer[0]), StringToInt(sColorBuffer[1]), StringToInt(sColorBuffer[2]), -1);
+			if (KS_CheckEntityType(iProp, "effect"))
+				KS_SetColor(KS_GetEffectAttachment(iProp), StringToInt(sColorBuffer[0]), StringToInt(sColorBuffer[1]), StringToInt(sColorBuffer[2]), -1);
 			
 			KS_ChangeBeam(iClient, iProp);
 			
@@ -501,8 +499,8 @@ public Action Command_Delete(int iClient, int iArgs)
 		
 		Call_Finish();
 		
-		if (KS_CheckEntityType(iProp, "emitter"))
-			AcceptEntityInput(KS_GetEmitterAttachment(iProp), "TurnOff");
+		if (KS_CheckEntityType(iProp, "effect"))
+			AcceptEntityInput(KS_GetEffectAttachment(iProp), "TurnOff");
 		
 		KS_RemovalBeam(iClient, iProp);
 		
@@ -1282,7 +1280,7 @@ public int Native_GetEntityCatagory(Handle hPlugin, int iNumParams)
 	
 	EntityType etEntityType = KS_GetEntityType(iEntity);
 	
-	if (etEntityType == ENTTYPE_DOOR || etEntityType == ENTTYPE_EMITTER || etEntityType == ENTTYPE_INTERNET)
+	if (etEntityType == ENTTYPE_DOOR || etEntityType == ENTTYPE_EFFECT || etEntityType == ENTTYPE_INTERNET)
 	{
 		return view_as<int>(ENTCATAGORY_CEL);
 	} else if (etEntityType == ENTTYPE_CYCLER || etEntityType == ENTTYPE_DYNAMIC || etEntityType == ENTTYPE_PHYSICS)
@@ -1334,9 +1332,9 @@ public int Native_GetEntityType(Handle hPlugin, int iNumParams)
 	} else if (StrEqual(sClassname, "cel_internet", false))
 	{
 		return view_as<int>(ENTTYPE_INTERNET);
-	} else if (StrContains(sClassname, "emitter_", false) != -1)
+	} else if (StrContains(sClassname, "effect_", false) != -1)
 	{
-		return view_as<int>(ENTTYPE_EMITTER);
+		return view_as<int>(ENTTYPE_EFFECT);
 	} else if (StrContains(sClassname, "prop_dynamic", false) != -1)
 	{
 		return view_as<int>(ENTTYPE_DYNAMIC);
@@ -1363,9 +1361,9 @@ public int Native_GetEntityTypeFromName(Handle hPlugin, int iNumParams)
 	} else if (StrEqual(sEntityType, "dynamic", false))
 	{
 		return view_as<int>(ENTTYPE_DYNAMIC);
-	} else if (StrEqual(sEntityType, "emitter", false))
+	} else if (StrEqual(sEntityType, "effect", false))
 	{
-		return view_as<int>(ENTTYPE_EMITTER);
+		return view_as<int>(ENTTYPE_EFFECT);
 	} else if (StrEqual(sEntityType, "internet", false))
 	{
 		return view_as<int>(ENTTYPE_INTERNET);
@@ -1396,9 +1394,9 @@ public int Native_GetEntityTypeName(Handle hPlugin, int iNumParams)
 		{
 			Format(sEntityType, sizeof(sEntityType), "dynamic prop");
 		}
-		case ENTTYPE_EMITTER:
+		case ENTTYPE_EFFECT:
 		{
-			Format(sEntityType, sizeof(sEntityType), "emitter cel");
+			Format(sEntityType, sizeof(sEntityType), "effect cel");
 		}
 		case ENTTYPE_INTERNET:
 		{

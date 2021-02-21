@@ -1,17 +1,18 @@
 #pragma semicolon 1
 
 #include <kingssandbox>
+#include <sourcemod>
 
 #pragma newdecls required
 
 char g_sColorListURL[PLATFORM_MAX_PATH];
 char g_sCommandListURL[PLATFORM_MAX_PATH];
-char g_sEmitterListURL[PLATFORM_MAX_PATH];
+char g_sEffectListURL[PLATFORM_MAX_PATH];
 char g_sPropListURL[PLATFORM_MAX_PATH];
 
 ConVar g_cvColorListURL;
 ConVar g_cvCommandListURL;
-ConVar g_cvEmitterListURL;
+ConVar g_cvEffectListURL;
 ConVar g_cvPropListURL;
 
 public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErr_max)
@@ -38,17 +39,17 @@ public void OnPluginStart()
 {
 	g_cvColorListURL = CreateConVar("ks_color_list_url", "https://rockzehh.github.io/kingssandbox/1.1.0.0/colorlist_export.html", "URL for the color list command.");
 	g_cvCommandListURL = CreateConVar("ks_command_list_url", "https://rockzehh.github.io/kingssandbox/1.1.0.0/commandlist_export.html", "URL for the command list command.");
-	g_cvEmitterListURL = CreateConVar("ks_emitter_list_url", "https://rockzehh.github.io/kingssandbox/1.1.0.0/emitters.html", "URL for the emitter list command.");
+	g_cvEffectListURL = CreateConVar("ks_effect_list_url", "https://rockzehh.github.io/kingssandbox/1.1.0.0/effects.html", "URL for the effect list command.");
 	g_cvPropListURL = CreateConVar("ks_prop_list_url", "https://rockzehh.github.io/kingssandbox/1.1.0.0/proplist_export.html", "URL for the prop list command.");
 	
 	g_cvColorListURL.AddChangeHook(KSHelp_OnConVarChanged);
 	g_cvCommandListURL.AddChangeHook(KSHelp_OnConVarChanged);
-	g_cvEmitterListURL.AddChangeHook(KSHelp_OnConVarChanged);
+	g_cvEffectListURL.AddChangeHook(KSHelp_OnConVarChanged);
 	g_cvPropListURL.AddChangeHook(KSHelp_OnConVarChanged);
 	
 	g_cvColorListURL.GetString(g_sColorListURL, sizeof(g_sColorListURL));
 	g_cvCommandListURL.GetString(g_sCommandListURL, sizeof(g_sCommandListURL));
-	g_cvEmitterListURL.GetString(g_sEmitterListURL, sizeof(g_sEmitterListURL));
+	g_cvEffectListURL.GetString(g_sEffectListURL, sizeof(g_sEffectListURL));
 	g_cvPropListURL.GetString(g_sPropListURL, sizeof(g_sPropListURL));
 	
 	RegConsoleCmd("sm_colorlist", Command_ColorList, "King's Sandbox: Displays the color list.");
@@ -56,16 +57,14 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_cmds", Command_CommandList, "King's Sandbox: Displays the command list.");
 	RegConsoleCmd("sm_commandlist", Command_CommandList, "King's Sandbox: Displays the command list.");
 	RegConsoleCmd("sm_commands", Command_CommandList, "King's Sandbox: Displays the command list.");
-	RegConsoleCmd("sm_emitterlist", Command_EmitterList, "King's Sandbox: Displays the emitter list.");
-	RegConsoleCmd("sm_emitters", Command_EmitterList, "King's Sandbox: Displays the emitter list.");
+	RegConsoleCmd("sm_effectlist", Command_EffectList, "King's Sandbox: Displays the effect list.");
+	RegConsoleCmd("sm_effects", Command_EffectList, "King's Sandbox: Displays the effect list.");
 	RegConsoleCmd("sm_proplist", Command_PropList, "King's Sandbox: Displays the prop list.");
 	RegConsoleCmd("sm_props", Command_PropList, "King's Sandbox: Displays the prop list.");
 	
 	RegServerCmd("ks_exportcolorlist", Command_ExportColorList, "King's Sandbox-Server: Exports the color list into a text or html file in 'data/kingssandbox/exports'.");
 	RegServerCmd("ks_exportcommandlist", Command_ExportCommandList, "King's Sandbox-Server: Exports the command list into a text or html file in 'data/kingssandbox/exports'.");
 	RegServerCmd("ks_exportproplist", Command_ExportPropList, "King's Sandbox-Server: Exports the prop list into a text or html file in 'data/kingssandbox/exports'.");
-	
-	AutoExecConfig(true, "kings-help", "sourcemod");
 }
 
 public void KSHelp_OnConVarChanged(ConVar cvConVar, const char[] sOldValue, const char[] sNewValue)
@@ -78,10 +77,10 @@ public void KSHelp_OnConVarChanged(ConVar cvConVar, const char[] sOldValue, cons
 	{
 		g_cvCommandListURL.GetString(g_sCommandListURL, sizeof(g_sCommandListURL));
 		PrintToServer("King's Sandbox: Command list url updated to %s.", sNewValue);
-	} else if (cvConVar == g_cvEmitterListURL)
+	} else if (cvConVar == g_cvEffectListURL)
 	{
-		g_cvEmitterListURL.GetString(g_sEmitterListURL, sizeof(g_sEmitterListURL));
-		PrintToServer("King's Sandbox: Emitter list url updated to %s.", sNewValue);
+		g_cvEffectListURL.GetString(g_sEffectListURL, sizeof(g_sEffectListURL));
+		PrintToServer("King's Sandbox: Effect list url updated to %s.", sNewValue);
 	} else if (cvConVar == g_cvPropListURL) {
 		g_cvPropListURL.GetString(g_sPropListURL, sizeof(g_sPropListURL));
 		PrintToServer("King's Sandbox: Prop list url updated to %s.", sNewValue);
@@ -115,15 +114,15 @@ public Action Command_CommandList(int iClient, int iArgs)
 	return Plugin_Handled;
 }
 
-public Action Command_EmitterList(int iClient, int iArgs)
+public Action Command_EffectList(int iClient, int iArgs)
 {
 	char sURL[PLATFORM_MAX_PATH];
 	
-	KS_CheckInputURL(g_sEmitterListURL, sURL, sizeof(sURL));
+	KS_CheckInputURL(g_sEffectListURL, sURL, sizeof(sURL));
 	
 	KS_OpenMOTDOnClient(iClient, true, "King's Web Viewer", sURL, MOTDPANEL_TYPE_URL);
 	
-	KS_ReplyToCommand(iClient, "Displaying emitter list.");
+	KS_ReplyToCommand(iClient, "Displaying effect list.");
 	
 	return Plugin_Handled;
 }
