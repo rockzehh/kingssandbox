@@ -85,7 +85,7 @@ public void OnPluginStart()
 
 	g_fMaxLandSize = g_cvMaxLandSize.FloatValue;
 
-	RegConsoleCmd("sm_land", Command_Land, "Creates a building zone.");
+	RegConsoleCmd("sm_land", Command_Land, "King's Sandbox: Creates a building zone.");
 }
 
 public void OnClientPutInServer(int iClient)

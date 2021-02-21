@@ -1037,3 +1037,9 @@ addons/sourcemod/scripting/tests/test_colors.sp
 addons/sourcemod/scripting/tests/test_compile-all.sh
 addons/sourcemod/scripting/tests/test_compile-all.sp
 addons/sourcemod/smlib_README.md
+addons/sourcemod/data/kingssandbox/exports/colorlist_export.html
+addons/sourcemod/data/kingssandbox/exports/commandlist_export.html
+addons/sourcemod/data/kingssandbox/exports/commandlist_export.txt
+addons/sourcemod/data/kingssandbox/exports/proplist_export.html
+addons/sourcemod/data/kingssandbox/exports/commandlist_export.txt
+addons/sourcemod/data/kingssandbox/exports/commandlist_export.txt
