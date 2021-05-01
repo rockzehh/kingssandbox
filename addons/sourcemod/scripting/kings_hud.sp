@@ -158,7 +158,7 @@ public int Native_SetHudColor(Handle hPlugin, int iNumParams)
 public Action Timer_HUD(Handle hTimer)
 {
 	char sBuffer[128], sBufferArray[2][128], sMessage[MAX_MESSAGE_LENGTH], sPropname[128];
-	int iColor[4];
+	int iColor[4], iLand;
 	
 	if (g_bHudEnable)
 	{
@@ -238,6 +238,10 @@ public Action Timer_HUD(Handle hTimer)
 						
 						KS_GetHudColor(i, iColor);
 					}
+				} else if(KS_IsClientCrosshairInLand(i, iLand)){
+					Format(sMessage, sizeof(sMessage), "Land: %N", iLand);
+					
+					KS_GetHudColor(i, iColor);
 				} else {
 					Format(sMessage, sizeof(sMessage), "Props Spawned: %d\nCels Spawned: %d", KS_GetPropCount(i), KS_GetCelCount(i));
 					
