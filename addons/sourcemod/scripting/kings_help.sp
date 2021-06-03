@@ -37,10 +37,10 @@ public Plugin myinfo =
 
 public void OnPluginStart()
 {
-	g_cvColorListURL = CreateConVar("ks_color_list_url", "https://rockzehh.github.io/kingssandbox/1.1.0.0/colorlist_export.html", "URL for the color list command.");
-	g_cvCommandListURL = CreateConVar("ks_command_list_url", "https://rockzehh.github.io/kingssandbox/1.1.0.0/commandlist_export.html", "URL for the command list command.");
-	g_cvEffectListURL = CreateConVar("ks_effect_list_url", "https://rockzehh.github.io/kingssandbox/1.1.0.0/effects.html", "URL for the effect list command.");
-	g_cvPropListURL = CreateConVar("ks_prop_list_url", "https://rockzehh.github.io/kingssandbox/1.1.0.0/proplist_export.html", "URL for the prop list command.");
+	g_cvColorListURL = CreateConVar("ks_color_list_url", "https://rockzehh.github.io/kingssandbox/1.2.0.0/colorlist_export.html", "URL for the color list command.");
+	g_cvCommandListURL = CreateConVar("ks_command_list_url", "https://rockzehh.github.io/kingssandbox/1.2.0.0/commandlist_export.html", "URL for the command list command.");
+	g_cvEffectListURL = CreateConVar("ks_effect_list_url", "https://rockzehh.github.io/kingssandbox/1.2.0.0/effects.html", "URL for the effect list command.");
+	g_cvPropListURL = CreateConVar("ks_prop_list_url", "https://rockzehh.github.io/kingssandbox/1.2.0.0/proplist_export.html", "URL for the prop list command.");
 	
 	g_cvColorListURL.AddChangeHook(KSHelp_OnConVarChanged);
 	g_cvCommandListURL.AddChangeHook(KSHelp_OnConVarChanged);

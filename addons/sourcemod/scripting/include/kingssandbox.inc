@@ -40,7 +40,7 @@ enum EffectType
 #define MAX_MESSAGE_LENGTH		256 /**< Max length a message can be. */
 #define MAX_BUFFER_LENGTH		(MAX_MESSAGE_LENGTH * 4) /** Max length the buffer can be. */
 #define SANDBOX_VERSION "1.2.0.0" /**< Global version. */
-#define UPDATE_URL "https://raw.githubusercontent.com/rockzehh/kingssandbox/master/addons/sourcemod/updater.txt" /**< The url Updater uses to update. */
+#define UPDATE_URL "https://raw.githubusercontent.com/rockzehh/kingssandbox/master/addons/sourcemod/updater.upd" /**< The url Updater uses to update. */
 
 float g_fUp[3] = { -90.0, 0.0, 0.0 };
 float g_fZero[3] = { 0.0, 0.0, 0.0 };
@@ -327,8 +327,6 @@ native void KS_RemovalBeam(int iClient, int iEntity);
 
 native void KS_ReplyToCommand(int iClient, const char[] sMessage, any ...);
 
-//native void KS_ReplyToCommandTranslated(int iClient, const char[] sMessage, any ...);
-
 native void KS_SetAuthID(int iClient);
 
 native void KS_SetCelCount(int iClient, int iCount);
@@ -468,12 +466,19 @@ native void KS_SetHudColor(int iClient, int iR, int iG, int iB, int iA);
 
 //========== ks_land.smx ==========
 native int KS_CreateLandEntity(int iUserID, float fMin[3], float fMax[3]);
+
 native int KS_GetLandOwner(float fBottomCorner[3], float fTopCorner[3]);
+
 native bool KS_IsClientInLand(int iClient, int iLand);
+
 native bool KS_IsClientCrosshairInLand(int iClient, int iLand);
+
 native bool KS_IsEntityInLand(int iEntity, int iLand);
+
 native bool KS_IsPositionInBox(float fPos[3], float fBottomCorner[3], float fTopCorner[3], int iClient);
+
 native void KS_DrawLand(float fFrom[3], float fTo[3], float fLife, int iColor[4], bool bFlat=true);
+
 native void KS_GetMiddleOfABox(float fMin[3], float fMax[3], float fBuffer[3]);
 
 //========== ks_serverconvars.smx ==========

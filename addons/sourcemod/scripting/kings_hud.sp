@@ -170,7 +170,11 @@ public Action Timer_HUD(Handle hTimer)
 				
 				if (iEntity != -1)
 				{
-					if (KS_CheckEntityCatagory(iEntity, ENTCATAGORY_PROP))
+					if(KS_IsClientCrosshairInLand(i, iLand)){
+						Format(sMessage, sizeof(sMessage), "Land: %N", iLand);
+						
+						KS_GetHudColor(i, iColor);
+					} else if (KS_CheckEntityCatagory(iEntity, ENTCATAGORY_PROP))
 					{
 						KS_GetPropName(iEntity, sPropname, sizeof(sPropname));
 						
@@ -238,10 +242,6 @@ public Action Timer_HUD(Handle hTimer)
 						
 						KS_GetHudColor(i, iColor);
 					}
-				} else if(KS_IsClientCrosshairInLand(i, iLand)){
-					Format(sMessage, sizeof(sMessage), "Land: %N", iLand);
-					
-					KS_GetHudColor(i, iColor);
 				} else {
 					Format(sMessage, sizeof(sMessage), "Props Spawned: %d\nCels Spawned: %d", KS_GetPropCount(i), KS_GetCelCount(i));
 					

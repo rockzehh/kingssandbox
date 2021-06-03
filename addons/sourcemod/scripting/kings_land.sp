@@ -249,9 +249,11 @@ public int Native_CreateLandEntity(Handle hPlugin, int iNumParams)
 	fMin[0] = fMin[0] - fMiddle[0];
 	if (fMin[0] > 0.0)
 	fMin[0] *= -1.0;
+	
 	fMin[1] = fMin[1] - fMiddle[1];
 	if (fMin[1] > 0.0)
 	fMin[1] *= -1.0;
+	
 	fMin[2] = fMin[2] - fMiddle[2];
 	if (fMin[2] > 0.0)
 	fMin[2] *= -1.0;
@@ -259,9 +261,11 @@ public int Native_CreateLandEntity(Handle hPlugin, int iNumParams)
 	fMax[0] = fMax[0] - fMiddle[0];
 	if (fMax[0] < 0.0)
 	fMax[0] *= -1.0;
+	
 	fMax[1] = fMax[1] - fMiddle[1];
 	if (fMax[1] < 0.0)
 	fMax[1] *= -1.0;
+	
 	fMax[2] = fMax[2] - fMiddle[2];
 	if (fMax[2] < 0.0)
 	fMax[2] *= -1.0;
@@ -658,7 +662,6 @@ public Action Timer_GettingTop(Handle hTimer, any iPlayer)
 		
 		for(int x = 0; x < 2; x++)
 		{
-			
 			if(g_liLand[iClient].fBottomTop[x] > g_liLand[iClient].fBottom[x] + g_fMaxLandSize) {
 				g_liLand[iClient].fBottomTop[x] = g_liLand[iClient].fBottom[x] + g_fMaxLandSize;
 			}

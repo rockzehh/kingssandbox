@@ -106,7 +106,6 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErr
 	CreateNative("KS_PrintToChatAll", Native_PrintToChatAll);
 	CreateNative("KS_RemovalBeam", Native_RemovalBeam);
 	CreateNative("KS_ReplyToCommand", Native_ReplyToCommand);
-	//CreateNative("KS_ReplyToCommandTranslated", Native_ReplyToCommandTranslated);
 	CreateNative("KS_SetAuthID", Native_SetAuthID);
 	CreateNative("KS_SetCelCount", Native_SetCelCount);
 	CreateNative("KS_SetCelLimit", Native_SetCelLimit);
@@ -320,6 +319,16 @@ public void OnClientDisconnect(int iClient)
 			EmitSoundToClient(i, "play npc/metropolice/vo/off1.wav", i, 2, 100, 0, 1.0, 100, -1, NULL_VECTOR, NULL_VECTOR, true, 0.0);
 		}
 	}
+}
+
+public Action OnGetGameDescription(char sGameDesc[64])
+{
+	char sGameInfo[64];
+	
+	Format(sGameInfo, sizeof(sGameInfo), "King's Sandbox");
+		
+	strcopy(sGameDesc, sizeof(sGameDesc), sGameInfo);
+	return Plugin_Changed;
 }
 
 public void OnMapStart()
