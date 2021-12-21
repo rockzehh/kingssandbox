@@ -173,7 +173,7 @@ public Action Timer_HUD(Handle hTimer)
 					if(KS_IsClientCrosshairInLand(i, iLand)){
 						Format(sMessage, sizeof(sMessage), "Land: %N", iLand);
 						
-						KS_GetHudColor(i, iColor);
+						KS_GetHudColor(iLand, iColor);
 					} else if (KS_CheckEntityCatagory(iEntity, ENTCATAGORY_PROP))
 					{
 						KS_GetPropName(iEntity, sPropname, sizeof(sPropname));

@@ -178,7 +178,7 @@ public Action Command_Land(int iClient, int iArgs)
 			g_liLand[iClient].bDrawing = true;
 			g_liLand[iClient].bGettingTop = true;
 			
-			PrintToChat(iClient, "Started drawing land.");
+			KS_ReplyToCommand(iClient, "Started drawing land.");
 			
 			g_liLand[iClient].iPosition = 1;
 		}
@@ -626,7 +626,7 @@ public void EntOut_LandOnStartTouch(const char[] sOutput, int iCaller, int iActi
 	
 	if(!g_liLand[iActivator].bInLand)
 	{
-		PrintToChat(iActivator, "You have entered {green}%N{default}'s land.", iOwner);
+		KS_PrintToChat(iActivator, "You have entered {green}%N{default}'s land.", iOwner);
 	}
 	
 	g_liLand[iActivator].bInLand = true;
