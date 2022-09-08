@@ -487,7 +487,7 @@ public Action Command_Freeze(int client, int args)
 {
 	if (args < 1)
 	{
-		ReplyToCommand(client, "[SM] Usage: sm_freeze <#userid|name> [time]");
+		ReplyToCommand(client, "[SM] Usage: sm_freezeplayer <#userid|name> [time]");
 		return Plugin_Handled;
 	}
 

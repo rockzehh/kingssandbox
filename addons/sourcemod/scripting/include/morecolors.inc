@@ -623,7 +623,7 @@ stock bool CColorExists(const char[] sColor)
  * @return				Client's team color in hexadecimal, or green if unknown
  * On error/Errors:		If the client index passed is invalid or not in game.
  */
-stock void CGetTeamColor(int iClient)
+stock int CGetTeamColor(int iClient)
 {
 	if(iClient <= 0 || iClient > MaxClients)
 	{
@@ -636,7 +636,7 @@ stock void CGetTeamColor(int iClient)
 	}
 	
 	int iValue;
-	switch(GetClientTeam(int iClient))
+	switch(GetClientTeam(iClient))
 	{
 		case 1: {
 			iValue = COLOR_GRAY;
