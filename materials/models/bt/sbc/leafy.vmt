@@ -1,0 +1,5 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "models/bt/sbc/leafy"
+	"$bumpmap" "models/bt/sbc/leafy_normal"
+}

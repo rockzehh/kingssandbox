@@ -1,0 +1,5 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "models/bt/sbc/straw"
+	"$bumpmap" "models/bt/sbc/straw_normal"
+}

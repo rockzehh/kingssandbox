@@ -1,0 +1,23 @@
+// envmaptint_fix
+"VertexLitGeneric"
+{
+	"$basetexture" "Models\Effects\portalrift_normal"
+	"$surfaceprop" "metal"
+	"$bumpmap" "Models\Gman\gmanhirez_normal"
+	"$envmap" "env_cubemap"
+	"$normalmapalphaenvmapmask" 1
+	"$envmapcontrast" 1
+	"$envmapsaturation" 1
+	"$envmaptint" "[ .56 .67 .75 ]"
+	"$translucent" 1
+	"$additive" 1
+	"Proxies"
+	{
+		"UniformNoise"
+		{
+			"minVal" "0"
+			"maxVal" "200000"
+			"resultVar" "$frame"
+		}
+	}
+}

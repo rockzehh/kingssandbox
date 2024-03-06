@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "models/bt/pineapple/pineapple_leaf"
+
+	// Removed because it makes the leaves look like shit -Cel, 2011
+	//"$bumpmap" "models/bt/pineapple/pineapple_leaf_bump"
+
+	"$nodecal" 1
+
+	"$detail" "detail\detailash001a"	
+	$detailscale 0.5
+	$detailblendfactor .65
+	$detailblendmode 0
+}

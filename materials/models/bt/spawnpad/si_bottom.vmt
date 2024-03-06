@@ -1,0 +1,6 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "Models/Alyx/alyxblack"
+	"$nodecal" 1
+	"$envmap" "CustomCubeMaps/simplespec"
+}

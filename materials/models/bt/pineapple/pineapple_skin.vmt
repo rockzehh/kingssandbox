@@ -1,0 +1,21 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "models/bt/pineapple/pineapple_skin"
+	"$bumpmap" "models/bt/pineapple/pineapple_skin_bump"
+	"$nodecal" 1
+
+	"$detail" "Detail\metal_detail_01"	
+	$detailscale 4.283
+	$detailblendfactor .65
+	$detailblendmode 0
+
+	//"$selfillum" "1"
+	"$phong" "1"
+	"$phongexponent" "2"
+	"$phongboost" "0.1"	
+	"$phongfresnelranges"	"[2 0 2]"
+
+	"$rimlight" "1"
+	"$rimlightexponent" "2"
+	"$rimlightboost" "1"	
+}

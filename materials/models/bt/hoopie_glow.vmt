@@ -1,0 +1,17 @@
+"UnlitGeneric"
+{
+	"$basetexture" "models/bt/hoopie_glow"
+	"$surfaceprop" "glass"
+	"$nodecal" 1
+	"$model" 1
+
+	"Proxies"
+	{
+		"AnimatedTexture"
+		{
+			"animatedtexturevar"	"$basetexture"
+			"animatedtextureframenumvar"	"$frame"
+			"animatedtextureframerate"	20
+		}
+	}
+}

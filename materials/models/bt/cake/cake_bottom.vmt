@@ -1,0 +1,6 @@
+"VertexLitGeneric"
+{
+	"$basetexture"	"models/bt/cake/cake_bottom"
+	"$surfaceprop"	"metal"
+	"$envmap" "CustomCubeMaps/simplespec"
+}
